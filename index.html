@@ -652,6 +652,7 @@
             
             try {
                 console.log('Completing story:', currentStory.story_id);
+                console.log('Current user ID:', currentUser.id);
                 
                 // Mark story as completed in database
                 const progressData = {
@@ -662,16 +663,31 @@
                     last_read: new Date().toISOString()
                 };
                 
+                console.log('Inserting progress data:', progressData);
+                
                 const { data, error } = await supabase
                     .from('user_progress')
-                    .upsert(progressData, {
-                        onConflict: 'user_id,story_id',
-                        ignoreDuplicates: false
-                    });
+                    .insert(progressData);
                 
                 console.log('Progress save result:', data, error);
                 
-                if (error) throw error;
+                if (error) {
+                    // Try update instead of insert if record exists
+                    console.log('Insert failed, trying update...');
+                    const { data: updateData, error: updateError } = await supabase
+                        .from('user_progress')
+                        .update({
+                            completed: new Date().toISOString(),
+                            completed_at: new Date().toISOString(),
+                            last_read: new Date().toISOString()
+                        })
+                        .eq('user_id', currentUser.id)
+                        .eq('story_id', currentStory.story_id);
+                    
+                    console.log('Update result:', updateData, updateError);
+                    
+                    if (updateError) throw updateError;
+                }
                 
                 // Update local state
                 completedStories.add(currentStory.story_id);
