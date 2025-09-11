@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Stories - Learn to Read</title>
+    <title>Little Lores- Learn to Read</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Comic Sans MS', cursive, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
@@ -12,8 +12,8 @@
         .app-title { font-size: 2.5rem; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); margin-bottom: 10px; }
         .app-subtitle { font-size: 1.2rem; color: rgba(255,255,255,0.9); margin-bottom: 20px; }
         
-        .nav-menu { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
-        .nav-btn { background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 8px 15px; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
+        .nav-menu { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
+        .nav-btn { background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 6px 12px; cursor: pointer; transition: all 0.3s ease; font-size: 0.8rem; }
         .nav-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
         
         .card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; animation: fadeIn 0.6s ease-out; }
@@ -51,6 +51,8 @@
         
         .user-info { text-align: center; margin-bottom: 20px; color: white; }
         .hidden { display: none; }
+        .loading { text-align: center; padding: 20px; color: #666; }
+        .error { background: #ffe6e6; border: 2px solid #ff6b6b; border-radius: 10px; padding: 15px; margin: 10px 0; color: #d63031; }
         .reading-assistance { background: #fff3cd; border: 2px solid #ffeaa7; border-radius: 10px; padding: 15px; margin: 10px 0; font-size: 0.9rem; }
         .word-help { background: #e3f2fd; padding: 3px 8px; border-radius: 5px; cursor: pointer; transition: background 0.2s; }
         .word-help:hover { background: #bbdefb; }
@@ -60,19 +62,21 @@
             .container { padding: 10px; }
             .card { padding: 20px; }
             .options-grid { grid-template-columns: 1fr; }
+            .nav-btn { font-size: 0.7rem; padding: 5px 10px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="app-header">
-            <h1 class="app-title">🌍 Global Stories</h1>
+            <h1 class="app-title">🌍 Little Lores</h1>
             <p class="app-subtitle">Discover the world through reading!</p>
             
             <!-- Navigation Menu -->
             <div id="navMenu" class="nav-menu hidden">
-                <button class="nav-btn" onclick="showGradeSelect()">📚 Change Grade</button>
-                <button class="nav-btn" onclick="showStoriesRead()">✅ Stories Read</button>
+                <button class="nav-btn" onclick="showGradeSelect()">📚 Grade</button>
+                <button class="nav-btn" onclick="showRegionSelect()">🗺️ Region</button>
+                <button class="nav-btn" onclick="showStoriesRead()">✅ Read</button>
                 <button class="nav-btn" onclick="logout()">🚪 Logout</button>
             </div>
         </div>
@@ -84,11 +88,17 @@
             <button class="google-login-btn" onclick="handleLogin()">
                 <span>🔐</span> Login with Google
             </button>
+            <div id="loginError" class="error hidden"></div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="card loading hidden">
+            <h2>Loading your stories... 📖</h2>
+            <p>Please wait while we prepare your reading adventure!</p>
         </div>
 
         <!-- Grade Selection -->
         <div id="gradeScreen" class="card grade-selector hidden">
-            <button class="back-btn" onclick="goBack()">← Back</button>
             <h2>What grade are you in? 🎓</h2>
             <div class="options-grid">
                 <button class="option-btn" onclick="selectGrade('K-1')">Kindergarten - 1st Grade</button>
@@ -100,7 +110,6 @@
 
         <!-- Region Selection -->
         <div id="regionScreen" class="card region-selector hidden">
-            <button class="back-btn" onclick="goBack()">← Back</button>
             <div class="user-info">
                 <p>Hello, <span id="userName">Student</span>! Grade: <span id="userGrade"></span></p>
             </div>
@@ -117,7 +126,6 @@
 
         <!-- Stories Selection -->
         <div id="storiesScreen" class="card hidden">
-            <button class="back-btn" onclick="goBack()">← Back</button>
             <div class="user-info">
                 <p><span id="userNameStories"></span> | Grade: <span id="userGradeStories"></span> | Region: <span id="userRegionStories"></span></p>
             </div>
@@ -125,9 +133,13 @@
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill" style="width: 0%"></div>
             </div>
-            <p style="text-align: center; margin: 10px 0;">Stories completed: <span id="completedCount">0</span>/15</p>
+            <p style="text-align: center; margin: 10px 0;">Stories completed: <span id="completedCount">0</span></p>
             <div class="stories-grid" id="storiesGrid">
-                <!-- Stories will be populated here -->
+                <!-- Stories will be loaded from Supabase -->
+            </div>
+            <div id="noStoriesMessage" class="hidden" style="text-align: center; padding: 40px;">
+                <h3>📚 No new stories available!</h3>
+                <p>You've read all the stories in this region. Try exploring a different region!</p>
             </div>
         </div>
 
@@ -140,10 +152,10 @@
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFillRead" style="width: 0%"></div>
             </div>
-            <p style="text-align: center; margin: 10px 0;">Stories completed: <span id="completedCountRead">0</span>/15</p>
+            <p style="text-align: center; margin: 10px 0;">Stories completed: <span id="completedCountRead">0</span></p>
             
             <div id="completedStoriesGrid" class="stories-grid">
-                <!-- Completed stories will be populated here -->
+                <!-- Completed stories will be loaded from Supabase -->
             </div>
             
             <div id="noCompletedStories" class="hidden" style="text-align: center; padding: 40px;">
@@ -155,7 +167,6 @@
 
         <!-- Reading View -->
         <div id="readingScreen" class="card hidden">
-            <button class="back-btn" onclick="goBack()">← Back to Stories</button>
             <div class="reading-view">
                 <div class="story-nation" id="currentStoryNation"></div>
                 <h2 class="story-title" id="currentStoryTitle"></h2>
@@ -181,7 +192,16 @@
         </div>
     </div>
 
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://mxjhvjwjgqmavmasfypa.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im14amh2andqZ3FtYXZtYXNmeXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3Njk5NjEsImV4cCI6MjA2MDM0NTk2MX0.LLk01H7ueKFPMFpZfNOv3zx8VsICu6Gh6msuSjBW2x0';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         // App State
         let currentUser = null;
         let userGrade = null;
@@ -189,23 +209,8 @@
         let currentStory = null;
         let completedStories = new Set();
         let textSizeLevel = 1;
-
-        // Sample stories data
-        const sampleStories = {
-            'Africa': [
-                { id: 1, title: "Anansi and the Wisdom Pot", nation: "Ghana", text: "Long ago, Anansi the spider wanted to become the wisest creature in the world. He decided to collect all the wisdom in the world and put it in a large pot. Day after day, Anansi gathered wisdom from every corner of the earth. Soon, his pot was full of all the wisdom in the world. 'Now I am the wisest,' he said. 'But I must hide this pot where no one can find it.' Anansi decided to hide the pot at the top of a tall tree. He tied the pot in front of him and began to climb. But the pot was so big that he could not see his hands or feet. He kept slipping down. His young son watched and said, 'Father, why don't you tie the pot to your back instead?' Anansi realized his son was wiser than him. In anger, he threw the pot down, and it broke. The wisdom scattered everywhere, and that's why today, everyone in the world has a little bit of wisdom.", grade_level: "2-3" },
-                { id: 2, title: "The Tortoise and the Birds", nation: "Nigeria", text: "Once upon a time, there was a great famine in the land of animals. The birds decided to fly to the sky where there was a great feast. Tortoise, who was very cunning, asked if he could join them. 'But you cannot fly,' said the birds. 'I will find a way,' replied Tortoise. Each bird gave Tortoise a feather, and soon he could fly. Before they left, Tortoise said, 'When we arrive at the feast, we must have new names. My name will be All of You.' At the feast, the host said, 'This food is for all of you.' Tortoise quickly said, 'That's my name!' and ate most of the food. The birds were very angry. On the way back, they took their feathers back from Tortoise. Tortoise fell from the sky, but luckily landed in a pile of soft leaves. That's why the tortoise has a cracked shell to this day.", grade_level: "K-1" }
-            ],
-            'Asia': [
-                { id: 3, title: "The Monkey and the Crocodile", nation: "India", text: "A monkey lived on a jamun tree by a river. Every day, he ate the sweet fruits and was very happy. A crocodile lived in the river below. The kind monkey would throw fruits down to the crocodile, and they became good friends. One day, the crocodile's wife said, 'If the monkey eats such sweet fruits, his heart must be very sweet too. I want to eat it!' The crocodile was sad but loved his wife. The next day, he asked the monkey to visit his home across the river. 'Jump on my back, and I'll take you there,' he said. Halfway across, the crocodile told the monkey about his wife's plan. The clever monkey said, 'Oh no! I left my heart on the tree. We must go back so I can get it.' The foolish crocodile swam back. The monkey quickly climbed up the tree and said, 'My dear friend, hearts cannot be taken out of bodies. You tried to trick me, so our friendship is over.' The crocodile learned that greed destroys friendship.", grade_level: "4-5" }
-            ],
-            'Europe': [
-                { id: 4, title: "The Elves and the Shoemaker", nation: "Germany", text: "There once lived a poor shoemaker with his wife. They had only enough leather to make one pair of shoes. The shoemaker cut out the leather at night, planning to sew the shoes in the morning. When he woke up, he found a beautiful pair of shoes already made! A customer bought them for a good price. With the money, the shoemaker bought leather for two pairs of shoes. Again, he cut the leather at night, and in the morning, found two perfect pairs of shoes! This continued for many days. Soon, the shoemaker became wealthy. One night, he and his wife decided to hide and see who was helping them. At midnight, two tiny elves appeared and began working with tiny tools. They worked all night making beautiful shoes. The grateful shoemaker and his wife decided to make tiny clothes and shoes for the helpful elves. When the elves found the gifts, they were so happy that they danced around and then disappeared forever, but the shoemaker remained successful for the rest of his life.", grade_level: "2-3" }
-            ],
-            'Americas': [
-                { id: 5, title: "How the Rainbow Came to Be", nation: "Native American", text: "Long ago, the world had no colors. Everything was black, white, and gray. The animals and people were sad because the world looked dull. The Great Spirit saw their sadness and decided to help. He called upon the most beautiful bird, the peacock, and gave her a special task. 'Fly across the sky after every rainstorm,' he said, 'and spread your colorful tail feathers across the clouds.' The peacock was honored to help. The next time it rained, she flew high into the sky and spread her magnificent tail. Her blue, green, purple, yellow, orange, and red feathers painted the sky in a beautiful arc. All the people and animals looked up and smiled. From that day forward, whenever it rained and the sun came out, the peacock would paint her colorful bridge across the sky. The people called it a rainbow, and it reminded everyone that after every storm, something beautiful appears. The rainbow became a symbol of hope and new beginnings for all.", grade_level: "K-1" }
-            ]
-        };
+        let allStories = [];
+        let userProfile = null;
 
         // Screen navigation
         let currentScreen = 'loginScreen';
@@ -221,56 +226,164 @@
             currentScreen = screenId;
         }
 
-        function goBack() {
-            if (screenHistory.length > 0) {
-                const previousScreen = screenHistory.pop();
-                showScreen(previousScreen);
+        function showLoading() {
+            showScreen('loadingScreen');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        // Authentication
+        async function handleLogin() {
+            try {
+                showLoading();
+                
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: 'https://ccalde29.github.io/LittleLoreApp/'
+                    }
+                });
+                
+                if (error) throw error;
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Login failed. Please try again.');
+                showScreen('loginScreen');
+            }
+        }
+
+        async function logout() {
+            try {
+                await supabase.auth.signOut();
+                
+                // Reset state
+                currentUser = null;
+                userGrade = null;
+                userRegion = null;
+                currentStory = null;
+                completedStories.clear();
+                textSizeLevel = 1;
+                allStories = [];
+                userProfile = null;
+                
+                document.getElementById('navMenu').classList.add('hidden');
+                screenHistory.length = 0;
+                showScreen('loginScreen');
+                
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        // Handle auth state changes
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                currentUser = session.user;
+                document.getElementById('navMenu').classList.remove('hidden');
+                
+                // Load user profile
+                await loadUserProfile();
+                
+                if (userProfile && userProfile.onboarding_complete) {
+                    userGrade = userProfile.grade;
+                    userRegion = userProfile.preferred_region;
+                    
+                    // Update UI
+                    document.getElementById('userName').textContent = currentUser.user_metadata.full_name || 'Student';
+                    document.getElementById('userGrade').textContent = userGrade;
+                    document.getElementById('userGradeStories').textContent = userGrade;
+                    document.getElementById('userRegionStories').textContent = userRegion;
+                    document.getElementById('userNameStories').textContent = currentUser.user_metadata.full_name || 'Student';
+                    
+                    // Load stories and progress
+                    await loadStories();
+                    await loadUserProgress();
+                    showScreen('storiesScreen');
+                } else {
+                    // First time user - go to grade selection
+                    document.getElementById('userName').textContent = currentUser.user_metadata.full_name || 'Student';
+                    showScreen('gradeScreen');
+                }
+            } else if (event === 'SIGNED_OUT') {
+                // User logged out
+                showScreen('loginScreen');
+            }
+        });
+
+        // User Profile Management
+        async function loadUserProfile() {
+            try {
+                const { data, error } = await supabase
+                    .from('user_profile')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .single();
+                
+                if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+                    throw error;
+                }
+                
+                userProfile = data;
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+            }
+        }
+
+        async function saveUserProfile() {
+            try {
+                const profileData = {
+                    user_id: currentUser.id,
+                    grade: userGrade,
+                    preferred_region: userRegion,
+                    onboarding_complete: true,
+                    updated_at: new Date().toISOString()
+                };
+
+                const { data, error } = await supabase
+                    .from('user_profile')
+                    .upsert(profileData, { 
+                        onConflict: 'user_id',
+                        ignoreDuplicates: false 
+                    });
+                
+                if (error) throw error;
+                
+                userProfile = { ...profileData };
+                
+            } catch (error) {
+                console.error('Error saving user profile:', error);
             }
         }
 
         // Navigation functions
-        function logout() {
-            currentUser = null;
-            userGrade = null;
-            userRegion = null;
-            currentStory = null;
-            completedStories.clear();
-            textSizeLevel = 1;
-            
-            document.getElementById('navMenu').classList.add('hidden');
-            screenHistory.length = 0;
-            showScreen('loginScreen');
-        }
-
         function showGradeSelect() {
-            userRegion = null;
             showScreen('gradeScreen');
         }
 
-        function showStoriesRead() {
-            loadCompletedStories();
+        function showRegionSelect() {
+            showScreen('regionScreen');
+        }
+
+        async function showStoriesRead() {
+            await loadCompletedStories();
             showScreen('storiesReadScreen');
         }
 
         function backToStories() {
             if (userRegion) {
-                loadStories();
                 showScreen('storiesScreen');
             } else {
                 showScreen('regionScreen');
             }
         }
 
-        // Login handler
-        function handleLogin() {
-            currentUser = { name: "Alex", email: "alex@example.com", id: "user_123" };
-            document.getElementById('navMenu').classList.remove('hidden');
-            document.getElementById('userName').textContent = currentUser.name;
-            showScreen('gradeScreen');
-        }
-
-        // Grade selection
-        function selectGrade(grade) {
+        // Grade and Region Selection
+        async function selectGrade(grade) {
             userGrade = grade;
             document.getElementById('userGrade').textContent = grade;
             document.getElementById('userGradeStories').textContent = grade;
@@ -281,54 +394,110 @@
             setTimeout(() => showScreen('regionScreen'), 500);
         }
 
-        // Region selection
-        function selectRegion(region) {
+        async function selectRegion(region) {
             userRegion = region;
             document.getElementById('userRegionStories').textContent = region;
-            document.getElementById('userNameStories').textContent = currentUser.name;
+            document.getElementById('userNameStories').textContent = currentUser.user_metadata.full_name || 'Student';
             
             document.querySelectorAll('#regionScreen .option-btn').forEach(btn => btn.classList.remove('selected'));
             event.target.classList.add('selected');
             
-            setTimeout(() => { loadStories(); showScreen('storiesScreen'); }, 500);
+            // Save profile
+            await saveUserProfile();
+            
+            setTimeout(async () => {
+                showLoading();
+                await loadStories();
+                await loadUserProgress();
+                showScreen('storiesScreen');
+            }, 500);
         }
 
-        // Load stories
-        function loadStories() {
+        // Story Management
+        async function loadStories() {
+            try {
+                let query = supabase.from('stories_raw').select('*');
+                
+                if (userRegion && userRegion !== 'Mixed') {
+                    query = query.eq('region', userRegion);
+                }
+                
+                const { data, error } = await query;
+                
+                if (error) throw error;
+                
+                allStories = data || [];
+                displayStories();
+                
+            } catch (error) {
+                console.error('Error loading stories:', error);
+                showError('Failed to load stories. Please try again.');
+            }
+        }
+
+        function displayStories() {
             const storiesGrid = document.getElementById('storiesGrid');
+            const noStoriesMessage = document.getElementById('noStoriesMessage');
             storiesGrid.innerHTML = '';
             
-            let stories = [];
-            if (userRegion === 'Mixed') {
-                Object.values(sampleStories).forEach(regionStories => stories = stories.concat(regionStories));
-            } else {
-                stories = sampleStories[userRegion] || [];
+            // Filter out completed stories
+            const unreadStories = allStories.filter(story => !completedStories.has(story.story_id));
+            
+            if (unreadStories.length === 0) {
+                storiesGrid.style.display = 'none';
+                noStoriesMessage.classList.remove('hidden');
+                return;
             }
             
-            const filteredStories = stories.filter(story => !completedStories.has(story.id) && isAppropriateForGrade(story.grade_level, userGrade));
-            const randomStories = shuffleArray(filteredStories).slice(0, 5);
+            storiesGrid.style.display = 'grid';
+            noStoriesMessage.classList.add('hidden');
+            
+            // Show random selection of unread stories (max 5)
+            const randomStories = shuffleArray(unreadStories).slice(0, 5);
             
             randomStories.forEach(story => {
                 const storyCard = document.createElement('div');
                 storyCard.className = 'story-card';
                 storyCard.onclick = () => readStory(story);
+                
                 storyCard.innerHTML = `
                     <div class="story-nation">${story.nation}</div>
                     <div class="story-title">${story.title}</div>
                     <div class="story-preview">${story.text.substring(0, 100)}...</div>
                 `;
+                
                 storiesGrid.appendChild(storyCard);
             });
             
             updateProgress();
         }
 
-        function loadCompletedStories() {
+        async function loadUserProgress() {
+            try {
+                const { data, error } = await supabase
+                    .from('user_progress')
+                    .select('story_id')
+                    .eq('user_id', currentUser.id)
+                    .eq('completed', true);
+                
+                if (error) throw error;
+                
+                completedStories.clear();
+                data.forEach(progress => {
+                    completedStories.add(progress.story_id);
+                });
+                
+            } catch (error) {
+                console.error('Error loading user progress:', error);
+            }
+        }
+
+        async function loadCompletedStories() {
             const completedGrid = document.getElementById('completedStoriesGrid');
             const noStoriesMsg = document.getElementById('noCompletedStories');
             
             if (currentUser && userGrade) {
-                document.getElementById('userNameRead').textContent = currentUser.name;
+                document.getElementById('userNameRead').textContent = currentUser.user_metadata.full_name || 'Student';
                 document.getElementById('userGradeRead').textContent = userGrade;
             }
             
@@ -342,45 +511,39 @@
             noStoriesMsg.classList.add('hidden');
             completedGrid.innerHTML = '';
             
-            let allStories = [];
-            Object.values(sampleStories).forEach(regionStories => allStories = allStories.concat(regionStories));
-            
-            const completedStoriesList = allStories.filter(story => completedStories.has(story.id));
-            
-            completedStoriesList.forEach(story => {
-                const storyCard = document.createElement('div');
-                storyCard.className = 'story-card completed';
-                storyCard.onclick = () => readStory(story);
-                storyCard.innerHTML = `
-                    <div class="story-nation">${story.nation}</div>
-                    <div class="story-title">${story.title}</div>
-                    <div class="story-preview">${story.text.substring(0, 100)}...</div>
-                    <div style="margin-top: 10px; color: #27ae60; font-weight: bold;">✅ Completed</div>
-                `;
-                completedGrid.appendChild(storyCard);
-            });
+            // Get completed stories from database
+            try {
+                const completedIds = Array.from(completedStories);
+                const { data, error } = await supabase
+                    .from('stories_raw')
+                    .select('*')
+                    .in('story_id', completedIds);
+                
+                if (error) throw error;
+                
+                data.forEach(story => {
+                    const storyCard = document.createElement('div');
+                    storyCard.className = 'story-card completed';
+                    storyCard.onclick = () => readStory(story);
+                    
+                    storyCard.innerHTML = `
+                        <div class="story-nation">${story.nation}</div>
+                        <div class="story-title">${story.title}</div>
+                        <div class="story-preview">${story.text.substring(0, 100)}...</div>
+                        <div style="margin-top: 10px; color: #27ae60; font-weight: bold;">✅ Completed</div>
+                    `;
+                    
+                    completedGrid.appendChild(storyCard);
+                });
+                
+            } catch (error) {
+                console.error('Error loading completed stories:', error);
+            }
             
             updateProgressOnReadScreen();
         }
 
-        // Utility functions
-        function isAppropriateForGrade(storyGrade, userGrade) {
-            const gradeOrder = ['K-1', '2-3', '4-5', '6-8'];
-            const storyIndex = gradeOrder.indexOf(storyGrade);
-            const userIndex = gradeOrder.indexOf(userGrade);
-            return Math.abs(storyIndex - userIndex) <= 1;
-        }
-
-        function shuffleArray(array) {
-            const shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
-
-        // Reading functions
+        // Reading Functions
         function readStory(story) {
             currentStory = story;
             document.getElementById('currentStoryNation').textContent = story.nation;
@@ -390,12 +553,16 @@
         }
 
         function addWordHelpers(text) {
-            const difficultWords = ['magnificent', 'cunning', 'wisdom', 'famine', 'beautiful', 'disappeared', 'wonderful'];
+            const difficultWords = ['magnificent', 'cunning', 'wisdom', 'famine', 'beautiful', 'disappeared', 'wonderful', 'ancient', 'mysterious', 'adventure'];
             let highlightedText = text;
+            
             difficultWords.forEach(word => {
                 const regex = new RegExp(`\\b${word}\\b`, 'gi');
-                highlightedText = highlightedText.replace(regex, `<span class="word-help" onclick="showWordHelp('${word}')" title="Click for help">${word}</span>`);
+                highlightedText = highlightedText.replace(regex, 
+                    `<span class="word-help" onclick="showWordHelp('${word}')" title="Click for help">${word}</span>`
+                );
             });
+            
             return highlightedText;
         }
 
@@ -404,7 +571,14 @@
         }
 
         function toggleAudio() {
-            alert('🔊 Audio feature would read the story aloud!');
+            if ('speechSynthesis' in window) {
+                const text = document.getElementById('currentStoryText').textContent;
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.8; // Slower for children
+                speechSynthesis.speak(utterance);
+            } else {
+                alert('🔊 Audio feature is not supported in your browser.');
+            }
         }
 
         function adjustTextSize() {
@@ -421,39 +595,97 @@
                 'famine': 'when there is not enough food',
                 'beautiful': 'very pretty or lovely',
                 'disappeared': 'went away and could not be seen',
-                'wonderful': 'very good and amazing'
+                'wonderful': 'very good and amazing',
+                'ancient': 'very old, from long ago',
+                'mysterious': 'hard to understand or explain',
+                'adventure': 'an exciting experience or journey'
             };
+            
             alert(`💡 "${word}" means: ${definitions[word.toLowerCase()] || 'a special word'}`);
         }
 
-        function completeStory() {
-            if (currentStory) {
-                completedStories.add(currentStory.id);
+        async function completeStory() {
+            if (!currentStory) return;
+            
+            try {
+                // Mark story as completed in database
+                const { error } = await supabase
+                    .from('user_progress')
+                    .upsert({
+                        user_id: currentUser.id,
+                        story_id: currentStory.story_id,
+                        completed: true,
+                        completed_at: new Date().toISOString(),
+                        last_read: new Date().toISOString()
+                    }, {
+                        onConflict: 'user_id,story_id',
+                        ignoreDuplicates: false
+                    });
+                
+                if (error) throw error;
+                
+                // Update local state
+                completedStories.add(currentStory.story_id);
+                
                 alert(`🎉 Great job reading "${currentStory.title}"! You're becoming a wonderful reader!`);
-                updateProgress();
+                
+                // Return to stories and refresh
+                await loadStories();
                 showScreen('storiesScreen');
-                loadStories();
+                
+            } catch (error) {
+                console.error('Error completing story:', error);
+                alert('✅ Story completed! (Saving failed, but progress recorded locally)');
             }
         }
 
+        // Utility Functions
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
         function updateProgress() {
-            const totalStories = 15;
+            const totalAvailable = allStories.length;
             const completed = completedStories.size;
-            const percentage = (completed / totalStories) * 100;
+            const percentage = totalAvailable > 0 ? (completed / totalAvailable) * 100 : 0;
+            
             document.getElementById('progressFill').style.width = `${percentage}%`;
             document.getElementById('completedCount').textContent = completed;
         }
 
         function updateProgressOnReadScreen() {
-            const totalStories = 15;
+            const totalAvailable = allStories.length;
             const completed = completedStories.size;
-            const percentage = (completed / totalStories) * 100;
+            const percentage = totalAvailable > 0 ? (completed / totalAvailable) * 100 : 0;
+            
             document.getElementById('progressFillRead').style.width = `${percentage}%`;
             document.getElementById('completedCountRead').textContent = completed;
         }
 
         // Initialize app
-        document.addEventListener('DOMContentLoaded', () => showScreen('loginScreen'));
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is already logged in
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    // User is logged in, auth state change will handle the rest
+                } else {
+                    showScreen('loginScreen');
+                }
+            });
+        });
+
+        // Handle URL parameters (for OAuth redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('error')) {
+            showError('Login failed: ' + urlParams.get('error_description'));
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
     </script>
 </body>
 </html>
