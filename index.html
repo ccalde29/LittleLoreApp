@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Stories - Learn to Read</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Comic Sans MS', cursive, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+        .app-header { text-align: center; margin-bottom: 30px; }
+        .app-title { font-size: 2.5rem; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); margin-bottom: 10px; }
+        .app-subtitle { font-size: 1.2rem; color: rgba(255,255,255,0.9); margin-bottom: 20px; }
+        
+        .nav-menu { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
+        .nav-btn { background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 8px 15px; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
+        .nav-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+        
+        .card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .login-screen { text-align: center; }
+        .google-login-btn { background: #4285f4; color: white; border: none; border-radius: 50px; padding: 15px 30px; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px; }
+        .google-login-btn:hover { background: #3367d6; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        
+        .grade-selector, .region-selector { text-align: center; }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .option-btn { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); border: none; border-radius: 15px; padding: 20px; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; color: #333; font-weight: bold; }
+        .option-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+        .option-btn.selected { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border: 3px solid #4ecdc4; }
+        
+        .stories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }
+        .story-card { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 15px; padding: 20px; cursor: pointer; transition: all 0.3s ease; border: 3px solid transparent; }
+        .story-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); border-color: #ff6b6b; }
+        .story-card.completed { background: linear-gradient(135deg, #c3f0ca 0%, #b8e6c1 100%); }
+        .story-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 10px; color: #333; }
+        .story-nation { background: rgba(255,255,255,0.7); padding: 5px 12px; border-radius: 20px; display: inline-block; font-size: 0.9rem; margin-bottom: 10px; }
+        .story-preview { font-size: 0.9rem; color: #666; line-height: 1.4; }
+        
+        .reading-view { max-height: 600px; overflow-y: auto; }
+        .story-text { font-size: 1.2rem; line-height: 1.8; margin: 20px 0; text-align: justify; }
+        .reading-controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 20px 0; }
+        .control-btn { background: #4ecdc4; color: white; border: none; border-radius: 25px; padding: 10px 20px; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
+        .control-btn:hover { background: #45b7aa; transform: translateY(-2px); }
+        
+        .progress-bar { background: #e0e0e0; height: 8px; border-radius: 4px; margin: 20px 0; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #4ecdc4, #44a08d); height: 100%; transition: width 0.3s ease; }
+        
+        .back-btn { background: #95a5a6; color: white; border: none; border-radius: 25px; padding: 10px 20px; cursor: pointer; transition: all 0.3s ease; margin-bottom: 20px; }
+        .back-btn:hover { background: #7f8c8d; }
+        
+        .user-info { text-align: center; margin-bottom: 20px; color: white; }
+        .hidden { display: none; }
+        .reading-assistance { background: #fff3cd; border: 2px solid #ffeaa7; border-radius: 10px; padding: 15px; margin: 10px 0; font-size: 0.9rem; }
+        .word-help { background: #e3f2fd; padding: 3px 8px; border-radius: 5px; cursor: pointer; transition: background 0.2s; }
+        .word-help:hover { background: #bbdefb; }
+        
+        @media (max-width: 600px) {
+            .app-title { font-size: 2rem; }
+            .container { padding: 10px; }
+            .card { padding: 20px; }
+            .options-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="app-header">
+            <h1 class="app-title">🌍 Global Stories</h1>
+            <p class="app-subtitle">Discover the world through reading!</p>
+            
+            <!-- Navigation Menu -->
+            <div id="navMenu" class="nav-menu hidden">
+                <button class="nav-btn" onclick="showGradeSelect()">📚 Change Grade</button>
+                <button class="nav-btn" onclick="showStoriesRead()">✅ Stories Read</button>
+                <button class="nav-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Login Screen -->
+        <div id="loginScreen" class="card login-screen">
+            <h2>Welcome, Young Explorer! 📚</h2>
+            <p style="margin: 20px 0;">Let's start your reading adventure around the world!</p>
+            <button class="google-login-btn" onclick="handleLogin()">
+                <span>🔐</span> Login with Google
+            </button>
+        </div>
+
+        <!-- Grade Selection -->
+        <div id="gradeScreen" class="card grade-selector hidden">
+            <button class="back-btn" onclick="goBack()">← Back</button>
+            <h2>What grade are you in? 🎓</h2>
+            <div class="options-grid">
+                <button class="option-btn" onclick="selectGrade('K-1')">Kindergarten - 1st Grade</button>
+                <button class="option-btn" onclick="selectGrade('2-3')">2nd - 3rd Grade</button>
+                <button class="option-btn" onclick="selectGrade('4-5')">4th - 5th Grade</button>
+                <button class="option-btn" onclick="selectGrade('6-8')">6th - 8th Grade</button>
+            </div>
+        </div>
+
+        <!-- Region Selection -->
+        <div id="regionScreen" class="card region-selector hidden">
+            <button class="back-btn" onclick="goBack()">← Back</button>
+            <div class="user-info">
+                <p>Hello, <span id="userName">Student</span>! Grade: <span id="userGrade"></span></p>
+            </div>
+            <h2>Which part of the world would you like to explore? 🗺️</h2>
+            <div class="options-grid">
+                <button class="option-btn" onclick="selectRegion('Africa')">🌍 Africa</button>
+                <button class="option-btn" onclick="selectRegion('Asia')">🏯 Asia</button>
+                <button class="option-btn" onclick="selectRegion('Europe')">🏰 Europe</button>
+                <button class="option-btn" onclick="selectRegion('Americas')">🗽 Americas</button>
+                <button class="option-btn" onclick="selectRegion('Oceania')">🏝️ Oceania</button>
+                <button class="option-btn" onclick="selectRegion('Mixed')">🌈 Surprise Me!</button>
+            </div>
+        </div>
+
+        <!-- Stories Selection -->
+        <div id="storiesScreen" class="card hidden">
+            <button class="back-btn" onclick="goBack()">← Back</button>
+            <div class="user-info">
+                <p><span id="userNameStories"></span> | Grade: <span id="userGradeStories"></span> | Region: <span id="userRegionStories"></span></p>
+            </div>
+            <h2>Choose your next adventure! 📖</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <p style="text-align: center; margin: 10px 0;">Stories completed: <span id="completedCount">0</span>/15</p>
+            <div class="stories-grid" id="storiesGrid">
+                <!-- Stories will be populated here -->
+            </div>
+        </div>
+
+        <!-- Stories Read Screen -->
+        <div id="storiesReadScreen" class="card hidden">
+            <h2>Stories You've Read! 🎉</h2>
+            <div class="user-info" style="color: #333;">
+                <p><span id="userNameRead"></span> | Grade: <span id="userGradeRead"></span></p>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFillRead" style="width: 0%"></div>
+            </div>
+            <p style="text-align: center; margin: 10px 0;">Stories completed: <span id="completedCountRead">0</span>/15</p>
+            
+            <div id="completedStoriesGrid" class="stories-grid">
+                <!-- Completed stories will be populated here -->
+            </div>
+            
+            <div id="noCompletedStories" class="hidden" style="text-align: center; padding: 40px;">
+                <h3>📖 No stories completed yet!</h3>
+                <p>Start reading some amazing stories from around the world!</p>
+                <button class="control-btn" onclick="backToStories()" style="margin-top: 15px;">Find Stories to Read</button>
+            </div>
+        </div>
+
+        <!-- Reading View -->
+        <div id="readingScreen" class="card hidden">
+            <button class="back-btn" onclick="goBack()">← Back to Stories</button>
+            <div class="reading-view">
+                <div class="story-nation" id="currentStoryNation"></div>
+                <h2 class="story-title" id="currentStoryTitle"></h2>
+                
+                <div class="reading-controls">
+                    <button class="control-btn" onclick="toggleReadingAssist()">💡 Reading Help</button>
+                    <button class="control-btn" onclick="toggleAudio()">🔊 Read Aloud</button>
+                    <button class="control-btn" onclick="adjustTextSize()">🔍 Text Size</button>
+                </div>
+
+                <div class="reading-assistance hidden" id="readingAssist">
+                    <strong>Reading Tip:</strong> Click on difficult words for help! Take your time and don't worry about reading perfectly.
+                </div>
+
+                <div class="story-text" id="currentStoryText"></div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="control-btn" onclick="completeStory()" style="background: #27ae60; font-size: 1.1rem; padding: 15px 30px;">
+                        ✅ I finished reading!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App State
+        let currentUser = null;
+        let userGrade = null;
+        let userRegion = null;
+        let currentStory = null;
+        let completedStories = new Set();
+        let textSizeLevel = 1;
+
+        // Sample stories data
+        const sampleStories = {
+            'Africa': [
+                { id: 1, title: "Anansi and the Wisdom Pot", nation: "Ghana", text: "Long ago, Anansi the spider wanted to become the wisest creature in the world. He decided to collect all the wisdom in the world and put it in a large pot. Day after day, Anansi gathered wisdom from every corner of the earth. Soon, his pot was full of all the wisdom in the world. 'Now I am the wisest,' he said. 'But I must hide this pot where no one can find it.' Anansi decided to hide the pot at the top of a tall tree. He tied the pot in front of him and began to climb. But the pot was so big that he could not see his hands or feet. He kept slipping down. His young son watched and said, 'Father, why don't you tie the pot to your back instead?' Anansi realized his son was wiser than him. In anger, he threw the pot down, and it broke. The wisdom scattered everywhere, and that's why today, everyone in the world has a little bit of wisdom.", grade_level: "2-3" },
+                { id: 2, title: "The Tortoise and the Birds", nation: "Nigeria", text: "Once upon a time, there was a great famine in the land of animals. The birds decided to fly to the sky where there was a great feast. Tortoise, who was very cunning, asked if he could join them. 'But you cannot fly,' said the birds. 'I will find a way,' replied Tortoise. Each bird gave Tortoise a feather, and soon he could fly. Before they left, Tortoise said, 'When we arrive at the feast, we must have new names. My name will be All of You.' At the feast, the host said, 'This food is for all of you.' Tortoise quickly said, 'That's my name!' and ate most of the food. The birds were very angry. On the way back, they took their feathers back from Tortoise. Tortoise fell from the sky, but luckily landed in a pile of soft leaves. That's why the tortoise has a cracked shell to this day.", grade_level: "K-1" }
+            ],
+            'Asia': [
+                { id: 3, title: "The Monkey and the Crocodile", nation: "India", text: "A monkey lived on a jamun tree by a river. Every day, he ate the sweet fruits and was very happy. A crocodile lived in the river below. The kind monkey would throw fruits down to the crocodile, and they became good friends. One day, the crocodile's wife said, 'If the monkey eats such sweet fruits, his heart must be very sweet too. I want to eat it!' The crocodile was sad but loved his wife. The next day, he asked the monkey to visit his home across the river. 'Jump on my back, and I'll take you there,' he said. Halfway across, the crocodile told the monkey about his wife's plan. The clever monkey said, 'Oh no! I left my heart on the tree. We must go back so I can get it.' The foolish crocodile swam back. The monkey quickly climbed up the tree and said, 'My dear friend, hearts cannot be taken out of bodies. You tried to trick me, so our friendship is over.' The crocodile learned that greed destroys friendship.", grade_level: "4-5" }
+            ],
+            'Europe': [
+                { id: 4, title: "The Elves and the Shoemaker", nation: "Germany", text: "There once lived a poor shoemaker with his wife. They had only enough leather to make one pair of shoes. The shoemaker cut out the leather at night, planning to sew the shoes in the morning. When he woke up, he found a beautiful pair of shoes already made! A customer bought them for a good price. With the money, the shoemaker bought leather for two pairs of shoes. Again, he cut the leather at night, and in the morning, found two perfect pairs of shoes! This continued for many days. Soon, the shoemaker became wealthy. One night, he and his wife decided to hide and see who was helping them. At midnight, two tiny elves appeared and began working with tiny tools. They worked all night making beautiful shoes. The grateful shoemaker and his wife decided to make tiny clothes and shoes for the helpful elves. When the elves found the gifts, they were so happy that they danced around and then disappeared forever, but the shoemaker remained successful for the rest of his life.", grade_level: "2-3" }
+            ],
+            'Americas': [
+                { id: 5, title: "How the Rainbow Came to Be", nation: "Native American", text: "Long ago, the world had no colors. Everything was black, white, and gray. The animals and people were sad because the world looked dull. The Great Spirit saw their sadness and decided to help. He called upon the most beautiful bird, the peacock, and gave her a special task. 'Fly across the sky after every rainstorm,' he said, 'and spread your colorful tail feathers across the clouds.' The peacock was honored to help. The next time it rained, she flew high into the sky and spread her magnificent tail. Her blue, green, purple, yellow, orange, and red feathers painted the sky in a beautiful arc. All the people and animals looked up and smiled. From that day forward, whenever it rained and the sun came out, the peacock would paint her colorful bridge across the sky. The people called it a rainbow, and it reminded everyone that after every storm, something beautiful appears. The rainbow became a symbol of hope and new beginnings for all.", grade_level: "K-1" }
+            ]
+        };
+
+        // Screen navigation
+        let currentScreen = 'loginScreen';
+        const screenHistory = [];
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.card').forEach(card => card.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+            
+            if (screenId !== currentScreen) {
+                screenHistory.push(currentScreen);
+            }
+            currentScreen = screenId;
+        }
+
+        function goBack() {
+            if (screenHistory.length > 0) {
+                const previousScreen = screenHistory.pop();
+                showScreen(previousScreen);
+            }
+        }
+
+        // Navigation functions
+        function logout() {
+            currentUser = null;
+            userGrade = null;
+            userRegion = null;
+            currentStory = null;
+            completedStories.clear();
+            textSizeLevel = 1;
+            
+            document.getElementById('navMenu').classList.add('hidden');
+            screenHistory.length = 0;
+            showScreen('loginScreen');
+        }
+
+        function showGradeSelect() {
+            userRegion = null;
+            showScreen('gradeScreen');
+        }
+
+        function showStoriesRead() {
+            loadCompletedStories();
+            showScreen('storiesReadScreen');
+        }
+
+        function backToStories() {
+            if (userRegion) {
+                loadStories();
+                showScreen('storiesScreen');
+            } else {
+                showScreen('regionScreen');
+            }
+        }
+
+        // Login handler
+        function handleLogin() {
+            currentUser = { name: "Alex", email: "alex@example.com", id: "user_123" };
+            document.getElementById('navMenu').classList.remove('hidden');
+            document.getElementById('userName').textContent = currentUser.name;
+            showScreen('gradeScreen');
+        }
+
+        // Grade selection
+        function selectGrade(grade) {
+            userGrade = grade;
+            document.getElementById('userGrade').textContent = grade;
+            document.getElementById('userGradeStories').textContent = grade;
+            
+            document.querySelectorAll('#gradeScreen .option-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            setTimeout(() => showScreen('regionScreen'), 500);
+        }
+
+        // Region selection
+        function selectRegion(region) {
+            userRegion = region;
+            document.getElementById('userRegionStories').textContent = region;
+            document.getElementById('userNameStories').textContent = currentUser.name;
+            
+            document.querySelectorAll('#regionScreen .option-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            setTimeout(() => { loadStories(); showScreen('storiesScreen'); }, 500);
+        }
+
+        // Load stories
+        function loadStories() {
+            const storiesGrid = document.getElementById('storiesGrid');
+            storiesGrid.innerHTML = '';
+            
+            let stories = [];
+            if (userRegion === 'Mixed') {
+                Object.values(sampleStories).forEach(regionStories => stories = stories.concat(regionStories));
+            } else {
+                stories = sampleStories[userRegion] || [];
+            }
+            
+            const filteredStories = stories.filter(story => !completedStories.has(story.id) && isAppropriateForGrade(story.grade_level, userGrade));
+            const randomStories = shuffleArray(filteredStories).slice(0, 5);
+            
+            randomStories.forEach(story => {
+                const storyCard = document.createElement('div');
+                storyCard.className = 'story-card';
+                storyCard.onclick = () => readStory(story);
+                storyCard.innerHTML = `
+                    <div class="story-nation">${story.nation}</div>
+                    <div class="story-title">${story.title}</div>
+                    <div class="story-preview">${story.text.substring(0, 100)}...</div>
+                `;
+                storiesGrid.appendChild(storyCard);
+            });
+            
+            updateProgress();
+        }
+
+        function loadCompletedStories() {
+            const completedGrid = document.getElementById('completedStoriesGrid');
+            const noStoriesMsg = document.getElementById('noCompletedStories');
+            
+            if (currentUser && userGrade) {
+                document.getElementById('userNameRead').textContent = currentUser.name;
+                document.getElementById('userGradeRead').textContent = userGrade;
+            }
+            
+            if (completedStories.size === 0) {
+                completedGrid.style.display = 'none';
+                noStoriesMsg.classList.remove('hidden');
+                return;
+            }
+            
+            completedGrid.style.display = 'grid';
+            noStoriesMsg.classList.add('hidden');
+            completedGrid.innerHTML = '';
+            
+            let allStories = [];
+            Object.values(sampleStories).forEach(regionStories => allStories = allStories.concat(regionStories));
+            
+            const completedStoriesList = allStories.filter(story => completedStories.has(story.id));
+            
+            completedStoriesList.forEach(story => {
+                const storyCard = document.createElement('div');
+                storyCard.className = 'story-card completed';
+                storyCard.onclick = () => readStory(story);
+                storyCard.innerHTML = `
+                    <div class="story-nation">${story.nation}</div>
+                    <div class="story-title">${story.title}</div>
+                    <div class="story-preview">${story.text.substring(0, 100)}...</div>
+                    <div style="margin-top: 10px; color: #27ae60; font-weight: bold;">✅ Completed</div>
+                `;
+                completedGrid.appendChild(storyCard);
+            });
+            
+            updateProgressOnReadScreen();
+        }
+
+        // Utility functions
+        function isAppropriateForGrade(storyGrade, userGrade) {
+            const gradeOrder = ['K-1', '2-3', '4-5', '6-8'];
+            const storyIndex = gradeOrder.indexOf(storyGrade);
+            const userIndex = gradeOrder.indexOf(userGrade);
+            return Math.abs(storyIndex - userIndex) <= 1;
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Reading functions
+        function readStory(story) {
+            currentStory = story;
+            document.getElementById('currentStoryNation').textContent = story.nation;
+            document.getElementById('currentStoryTitle').textContent = story.title;
+            document.getElementById('currentStoryText').innerHTML = addWordHelpers(story.text);
+            showScreen('readingScreen');
+        }
+
+        function addWordHelpers(text) {
+            const difficultWords = ['magnificent', 'cunning', 'wisdom', 'famine', 'beautiful', 'disappeared', 'wonderful'];
+            let highlightedText = text;
+            difficultWords.forEach(word => {
+                const regex = new RegExp(`\\b${word}\\b`, 'gi');
+                highlightedText = highlightedText.replace(regex, `<span class="word-help" onclick="showWordHelp('${word}')" title="Click for help">${word}</span>`);
+            });
+            return highlightedText;
+        }
+
+        function toggleReadingAssist() {
+            document.getElementById('readingAssist').classList.toggle('hidden');
+        }
+
+        function toggleAudio() {
+            alert('🔊 Audio feature would read the story aloud!');
+        }
+
+        function adjustTextSize() {
+            textSizeLevel = textSizeLevel >= 3 ? 1 : textSizeLevel + 1;
+            const sizes = ['1.2rem', '1.5rem', '1.8rem'];
+            document.getElementById('currentStoryText').style.fontSize = sizes[textSizeLevel - 1];
+        }
+
+        function showWordHelp(word) {
+            const definitions = {
+                'magnificent': 'very beautiful and impressive',
+                'cunning': 'clever in a sneaky way',
+                'wisdom': 'knowledge and good judgment',
+                'famine': 'when there is not enough food',
+                'beautiful': 'very pretty or lovely',
+                'disappeared': 'went away and could not be seen',
+                'wonderful': 'very good and amazing'
+            };
+            alert(`💡 "${word}" means: ${definitions[word.toLowerCase()] || 'a special word'}`);
+        }
+
+        function completeStory() {
+            if (currentStory) {
+                completedStories.add(currentStory.id);
+                alert(`🎉 Great job reading "${currentStory.title}"! You're becoming a wonderful reader!`);
+                updateProgress();
+                showScreen('storiesScreen');
+                loadStories();
+            }
+        }
+
+        function updateProgress() {
+            const totalStories = 15;
+            const completed = completedStories.size;
+            const percentage = (completed / totalStories) * 100;
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+            document.getElementById('completedCount').textContent = completed;
+        }
+
+        function updateProgressOnReadScreen() {
+            const totalStories = 15;
+            const completed = completedStories.size;
+            const percentage = (completed / totalStories) * 100;
+            document.getElementById('progressFillRead').style.width = `${percentage}%`;
+            document.getElementById('completedCountRead').textContent = completed;
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => showScreen('loginScreen'));
+    </script>
+</body>
+</html>
