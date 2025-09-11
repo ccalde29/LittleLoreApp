@@ -185,12 +185,14 @@
                 
                 <div class="reading-controls">
                     <button class="control-btn" onclick="toggleReadingAssist()">💡 Reading Help</button>
-                    <button class="control-btn" onclick="toggleAudio()">🔊 Read Aloud</button>
+                    <button class="control-btn" id="audioBtn" onclick="toggleAudio()">🔊 Read Aloud</button>
+                    <button class="control-btn" id="stopBtn" onclick="stopAudio()" style="display: none;">⏹️ Stop</button>
+                    <button class="control-btn" onclick="adjustSpeed()">⚡ Speed: <span id="speedDisplay">Normal</span></button>
                     <button class="control-btn" onclick="adjustTextSize()">🔍 Text Size</button>
                 </div>
 
                 <div class="reading-assistance hidden" id="readingAssist">
-                    <strong>Reading Tip:</strong> Click on difficult words for help! Take your time and don't worry about reading perfectly.
+                    <strong>Reading Tip:</strong> Click on highlighted words for help! Take your time and don't worry about reading perfectly.
                 </div>
 
                 <div class="story-text" id="currentStoryText"></div>
@@ -223,12 +225,23 @@
         let textSizeLevel = 1;
         let allStories = [];
         let userProfile = null;
+        
+        // Audio controls state
+        let currentUtterance = null;
+        let isReading = false;
+        let isPaused = false;
+        let speechRate = 0.8;
 
         // Screen navigation
         let currentScreen = 'loginScreen';
         const screenHistory = [];
 
         function showScreen(screenId) {
+            // Stop audio when leaving reading screen
+            if (currentScreen === 'readingScreen' && isReading) {
+                stopAudio();
+            }
+            
             document.querySelectorAll('.card').forEach(card => card.classList.add('hidden'));
             document.getElementById(screenId).classList.remove('hidden');
             
@@ -283,6 +296,9 @@
                 allStories = [];
                 userProfile = null;
                 
+                // Reset audio
+                if (isReading) stopAudio();
+                
                 document.getElementById('navMenu').classList.add('hidden');
                 document.getElementById('userHeader').classList.add('hidden');
                 screenHistory.length = 0;
@@ -293,7 +309,7 @@
             }
         }
 
-        // Handle auth state changes
+        // Handle auth state changes - IMPROVED LOGIN FLOW
         supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('Auth state change:', event, session?.user?.email);
             
@@ -309,21 +325,27 @@
                 // Load user profile
                 await loadUserProfile();
                 
-                if (userProfile && userProfile.onboarding_complete) {
+                if (userProfile && userProfile.grade) {
+                    // Remember last grade, go to region selection or stories
                     userGrade = userProfile.grade;
-                    userRegion = userProfile.preferred_nation; // Note: using preferred_nation from schema
+                    userRegion = userProfile.preferred_nation;
                     
                     // Update UI
                     document.getElementById('userName').textContent = currentUser.user_metadata.full_name || currentUser.email;
                     document.getElementById('userGrade').textContent = userGrade;
                     document.getElementById('userGradeStories').textContent = userGrade;
-                    document.getElementById('userRegionStories').textContent = userRegion;
-                    document.getElementById('userNameStories').textContent = currentUser.user_metadata.full_name || currentUser.email;
                     
-                    // Load stories and progress
-                    await loadStories();
-                    await loadUserProgress();
-                    showScreen('storiesScreen');
+                    if (userRegion) {
+                        // Has both grade and region, go to stories
+                        document.getElementById('userRegionStories').textContent = userRegion;
+                        document.getElementById('userNameStories').textContent = currentUser.user_metadata.full_name || currentUser.email;
+                        await loadStories();
+                        await loadUserProgress();
+                        showScreen('storiesScreen');
+                    } else {
+                        // Has grade but no region, go to region selection
+                        showScreen('regionScreen');
+                    }
                 } else {
                     // First time user - go to grade selection
                     document.getElementById('userName').textContent = currentUser.user_metadata.full_name || currentUser.email;
@@ -342,14 +364,14 @@
                 console.log('Loading profile for user:', currentUser.id);
                 
                 const { data, error } = await supabase
-                    .from('user_profiles') // Fixed table name
+                    .from('user_profiles')
                     .select('*')
                     .eq('user_id', currentUser.id)
                     .single();
                 
                 console.log('Profile query result:', data, error);
                 
-                if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+                if (error && error.code !== 'PGRST116') {
                     throw error;
                 }
                 
@@ -366,14 +388,14 @@
                 
                 const profileData = {
                     user_id: currentUser.id,
-                    grade: userGrade, // Will be stored as JSONB
-                    preferred_nation: userRegion, // Using preferred_nation as per schema
+                    grade: userGrade,
+                    preferred_nation: userRegion,
                     onboarding_complete: true,
                     updated_at: new Date().toISOString()
                 };
 
                 const { data, error } = await supabase
-                    .from('user_profiles') // Fixed table name
+                    .from('user_profiles')
                     .upsert(profileData, { 
                         onConflict: 'user_id',
                         ignoreDuplicates: false 
@@ -445,12 +467,26 @@
             }, 500);
         }
 
-        // Story Management
+        // Story Management - IMPROVED WITH GRADE FILTERING
         async function loadStories() {
             try {
-                console.log('Loading stories for region:', userRegion);
+                console.log('Loading stories for region:', userRegion, 'grade:', userGrade);
                 
-                let query = supabase.from('stories_raw').select('*');
+                // Get appropriate grade levels (current + 1 above, except 6-8)
+                const gradeOrder = ['K-1', '2-3', '4-5', '6-8'];
+                const userIndex = gradeOrder.indexOf(userGrade);
+                let allowedGrades = [userGrade];
+                
+                if (userIndex >= 0 && userIndex < gradeOrder.length - 1) {
+                    allowedGrades.push(gradeOrder[userIndex + 1]); // +1 grade above
+                }
+                
+                console.log('Allowed grades:', allowedGrades);
+                
+                let query = supabase
+                    .from('stories_raw')
+                    .select('*')
+                    .in('grade_level', allowedGrades);
                 
                 if (userRegion && userRegion !== 'Mixed') {
                     query = query.eq('region', userRegion);
@@ -463,7 +499,7 @@
                 if (error) throw error;
                 
                 allStories = data || [];
-                console.log('Loaded stories:', allStories.length);
+                console.log('Loaded stories:', allStories.length, 'for grades:', allowedGrades);
                 displayStories();
                 
             } catch (error) {
@@ -517,21 +553,24 @@
                     .from('user_progress')
                     .select('story_id')
                     .eq('user_id', currentUser.id)
-                    .not('completed', 'is', null); // Where completed is not null
+                    .not('completed', 'is', null);
                 
                 console.log('Progress query result:', data, error);
                 
                 if (error) throw error;
                 
                 completedStories.clear();
-                data.forEach(progress => {
-                    completedStories.add(progress.story_id);
-                });
+                if (data) {
+                    data.forEach(progress => {
+                        completedStories.add(progress.story_id);
+                    });
+                }
                 
                 console.log('Completed stories:', Array.from(completedStories));
                 
             } catch (error) {
                 console.error('Error loading user progress:', error);
+                completedStories.clear();
             }
         }
 
@@ -554,7 +593,6 @@
             noStoriesMsg.classList.add('hidden');
             completedGrid.innerHTML = '';
             
-            // Get completed stories from database
             try {
                 const completedIds = Array.from(completedStories);
                 const { data, error } = await supabase
@@ -588,6 +626,11 @@
 
         // Reading Functions
         function readStory(story) {
+            // Stop any current audio
+            if (isReading) {
+                stopAudio();
+            }
+            
             currentStory = story;
             document.getElementById('currentStoryNation').textContent = story.nation;
             document.getElementById('currentStoryTitle').textContent = story.title;
@@ -595,32 +638,121 @@
             showScreen('readingScreen');
         }
 
+        // SMART WORD HIGHLIGHTING - LENGTH BASED
         function addWordHelpers(text) {
-            const difficultWords = ['magnificent', 'cunning', 'wisdom', 'famine', 'beautiful', 'disappeared', 'wonderful', 'ancient', 'mysterious', 'adventure'];
-            let highlightedText = text;
+            if (!userGrade) return text;
             
-            difficultWords.forEach(word => {
-                const regex = new RegExp(`\\b${word}\\b`, 'gi');
-                highlightedText = highlightedText.replace(regex, 
-                    `<span class="word-help" onclick="showWordHelp('${word}')" title="Click for help">${word}</span>`
-                );
+            // Length thresholds by grade
+            const lengthThresholds = {
+                'K-1': 5,    // Words longer than 5 letters
+                '2-3': 7,    // Words longer than 7 letters  
+                '4-5': 8,    // Words longer than 8 letters
+                '6-8': 10    // Words longer than 10 letters
+            };
+            
+            const threshold = lengthThresholds[userGrade] || 8;
+            
+            // Split text into words and check each one
+            const words = text.split(/(\s+)/); // Keep whitespace
+            
+            const processedWords = words.map(word => {
+                // Only process actual words (not whitespace)
+                const cleanWord = word.replace(/[^\w]/g, ''); // Remove punctuation for length check
+                
+                if (cleanWord.length > threshold && /^[a-zA-Z]+/.test(cleanWord)) {
+                    // Highlight the word but preserve original punctuation
+                    return word.replace(/\b[a-zA-Z]+\b/, match => 
+                        `<span class="word-help" onclick="showWordHelp('${match.toLowerCase()}')" title="Click for help">${match}</span>`
+                    );
+                }
+                return word;
             });
             
-            return highlightedText;
+            return processedWords.join('');
         }
 
         function toggleReadingAssist() {
             document.getElementById('readingAssist').classList.toggle('hidden');
         }
 
+        // FULL AUDIO CONTROLS
         function toggleAudio() {
-            if ('speechSynthesis' in window) {
-                const text = document.getElementById('currentStoryText').textContent;
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 0.8; // Slower for children
-                speechSynthesis.speak(utterance);
-            } else {
+            if (!('speechSynthesis' in window)) {
                 alert('🔊 Audio feature is not supported in your browser.');
+                return;
+            }
+
+            if (isReading) {
+                if (isPaused) {
+                    // Resume
+                    speechSynthesis.resume();
+                    isPaused = false;
+                    document.getElementById('audioBtn').innerHTML = '⏸️ Pause';
+                } else {
+                    // Pause
+                    speechSynthesis.pause();
+                    isPaused = true;
+                    document.getElementById('audioBtn').innerHTML = '▶️ Resume';
+                }
+            } else {
+                // Start reading
+                startAudio();
+            }
+        }
+
+        function startAudio() {
+            const text = document.getElementById('currentStoryText').textContent;
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.rate = speechRate;
+            
+            currentUtterance.onstart = () => {
+                isReading = true;
+                isPaused = false;
+                document.getElementById('audioBtn').innerHTML = '⏸️ Pause';
+                document.getElementById('stopBtn').style.display = 'inline-block';
+            };
+            
+            currentUtterance.onend = () => {
+                resetAudioControls();
+            };
+            
+            currentUtterance.onerror = () => {
+                resetAudioControls();
+                alert('Error with text-to-speech. Please try again.');
+            };
+            
+            speechSynthesis.speak(currentUtterance);
+        }
+
+        function stopAudio() {
+            speechSynthesis.cancel();
+            resetAudioControls();
+        }
+
+        function resetAudioControls() {
+            isReading = false;
+            isPaused = false;
+            currentUtterance = null;
+            document.getElementById('audioBtn').innerHTML = '🔊 Read Aloud';
+            document.getElementById('stopBtn').style.display = 'none';
+        }
+
+        function adjustSpeed() {
+            const speeds = [0.5, 0.8, 1.0, 1.5, 2.0];
+            const speedNames = ['Slow', 'Normal', 'Fast', 'Faster', 'Very Fast'];
+            const currentIndex = speeds.indexOf(speechRate);
+            const nextIndex = (currentIndex + 1) % speeds.length;
+            
+            speechRate = speeds[nextIndex];
+            document.getElementById('speedDisplay').textContent = speedNames[nextIndex];
+            
+            // If currently reading, restart with new speed
+            if (isReading && !isPaused) {
+                const wasReading = true;
+                stopAudio();
+                if (wasReading) {
+                    setTimeout(startAudio, 100);
+                }
             }
         }
 
@@ -631,6 +763,7 @@
         }
 
         function showWordHelp(word) {
+            // Basic definitions for common complex words
             const definitions = {
                 'magnificent': 'very beautiful and impressive',
                 'cunning': 'clever in a sneaky way',
@@ -641,10 +774,27 @@
                 'wonderful': 'very good and amazing',
                 'ancient': 'very old, from long ago',
                 'mysterious': 'hard to understand or explain',
-                'adventure': 'an exciting experience or journey'
+                'adventure': 'an exciting experience or journey',
+                'enormous': 'very very big',
+                'dangerous': 'something that can hurt you',
+                'incredible': 'amazing and hard to believe',
+                'important': 'very special and needed',
+                'different': 'not the same as something else',
+                'together': 'at the same time or place',
+                'remember': 'to think about something from before',
+                'everywhere': 'in all places',
+                'something': 'a thing, but we don\'t know what',
+                'because': 'the reason why something happens'
             };
             
-            alert(`💡 "${word}" means: ${definitions[word.toLowerCase()] || 'a special word'}`);
+            const definition = definitions[word.toLowerCase()];
+            
+            if (definition) {
+                alert(`💡 "${word}" means: ${definition}`);
+            } else {
+                // Generic help for words without definitions
+                alert(`💡 "${word}" is a longer word that might be tricky. Sound it out slowly, or ask for help!`);
+            }
         }
 
         async function completeStory() {
@@ -654,7 +804,6 @@
                 console.log('Completing story:', currentStory.story_id);
                 console.log('Current user ID:', currentUser.id);
                 
-                // Mark story as completed in database
                 const progressData = {
                     user_id: currentUser.id,
                     story_id: currentStory.story_id,
@@ -672,7 +821,6 @@
                 console.log('Progress save result:', data, error);
                 
                 if (error) {
-                    // Try update instead of insert if record exists
                     console.log('Insert failed, trying update...');
                     const { data: updateData, error: updateError } = await supabase
                         .from('user_progress')
@@ -689,18 +837,15 @@
                     if (updateError) throw updateError;
                 }
                 
-                // Update local state
                 completedStories.add(currentStory.story_id);
                 
                 alert(`🎉 Great job reading "${currentStory.title}"! You're becoming a wonderful reader!`);
                 
-                // Return to stories and refresh
                 await loadStories();
                 showScreen('storiesScreen');
                 
             } catch (error) {
                 console.error('Error completing story:', error);
-                // Still update local state even if save fails
                 completedStories.add(currentStory.story_id);
                 alert('✅ Story completed! (Saving failed, but progress recorded locally)');
                 await loadStories();
@@ -738,7 +883,6 @@
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', () => {
-            // Check if user is already logged in
             supabase.auth.getSession().then(({ data: { session } }) => {
                 if (session) {
                     // User is logged in, auth state change will handle the rest
@@ -752,7 +896,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('error')) {
             showError('Login failed: ' + urlParams.get('error_description'));
-            // Clean up URL
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     </script>
