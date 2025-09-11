@@ -8,9 +8,14 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Comic Sans MS', cursive, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
         .container { max-width: 800px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
-        .app-header { text-align: center; margin-bottom: 30px; }
+        .app-header { text-align: center; margin-bottom: 30px; position: relative; }
         .app-title { font-size: 2.5rem; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); margin-bottom: 10px; }
         .app-subtitle { font-size: 1.2rem; color: rgba(255,255,255,0.9); margin-bottom: 20px; }
+        
+        .user-header { position: absolute; top: 0; right: 0; display: flex; align-items: center; gap: 10px; color: white; font-size: 0.9rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; }
+        .logout-btn { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 15px; padding: 5px 12px; cursor: pointer; font-size: 0.8rem; transition: all 0.3s ease; }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
         
         .nav-menu { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
         .nav-btn { background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 6px 12px; cursor: pointer; transition: all 0.3s ease; font-size: 0.8rem; }
@@ -63,21 +68,28 @@
             .card { padding: 20px; }
             .options-grid { grid-template-columns: 1fr; }
             .nav-btn { font-size: 0.7rem; padding: 5px 10px; }
+            .user-header { position: static; justify-content: center; margin-bottom: 15px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="app-header">
-            <h1 class="app-title">🌍 Little Lores</h1>
+            <h1 class="app-title">📚 Little Lores</h1>
             <p class="app-subtitle">Discover the world through reading!</p>
+            
+            <!-- User Info (top right) -->
+            <div id="userHeader" class="user-header hidden">
+                <img id="userAvatar" class="user-avatar" src="" alt="User">
+                <span id="userNameHeader"></span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
             
             <!-- Navigation Menu -->
             <div id="navMenu" class="nav-menu hidden">
                 <button class="nav-btn" onclick="showGradeSelect()">📚 Grade</button>
                 <button class="nav-btn" onclick="showRegionSelect()">🗺️ Region</button>
                 <button class="nav-btn" onclick="showStoriesRead()">✅ Read</button>
-                <button class="nav-btn" onclick="logout()">🚪 Logout</button>
             </div>
         </div>
 
@@ -283,23 +295,30 @@
 
         // Handle auth state changes
         supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('Auth state change:', event, session?.user?.email);
+            
             if (event === 'SIGNED_IN' && session) {
                 currentUser = session.user;
+                
+                // Show user info and navigation
                 document.getElementById('navMenu').classList.remove('hidden');
+                document.getElementById('userHeader').classList.remove('hidden');
+                document.getElementById('userNameHeader').textContent = currentUser.user_metadata.full_name || currentUser.email;
+                document.getElementById('userAvatar').src = currentUser.user_metadata.avatar_url || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
                 
                 // Load user profile
                 await loadUserProfile();
                 
                 if (userProfile && userProfile.onboarding_complete) {
                     userGrade = userProfile.grade;
-                    userRegion = userProfile.preferred_region;
+                    userRegion = userProfile.preferred_nation; // Note: using preferred_nation from schema
                     
                     // Update UI
-                    document.getElementById('userName').textContent = currentUser.user_metadata.full_name || 'Student';
+                    document.getElementById('userName').textContent = currentUser.user_metadata.full_name || currentUser.email;
                     document.getElementById('userGrade').textContent = userGrade;
                     document.getElementById('userGradeStories').textContent = userGrade;
                     document.getElementById('userRegionStories').textContent = userRegion;
-                    document.getElementById('userNameStories').textContent = currentUser.user_metadata.full_name || 'Student';
+                    document.getElementById('userNameStories').textContent = currentUser.user_metadata.full_name || currentUser.email;
                     
                     // Load stories and progress
                     await loadStories();
@@ -307,11 +326,12 @@
                     showScreen('storiesScreen');
                 } else {
                     // First time user - go to grade selection
-                    document.getElementById('userName').textContent = currentUser.user_metadata.full_name || 'Student';
+                    document.getElementById('userName').textContent = currentUser.user_metadata.full_name || currentUser.email;
                     showScreen('gradeScreen');
                 }
             } else if (event === 'SIGNED_OUT') {
                 // User logged out
+                document.getElementById('userHeader').classList.add('hidden');
                 showScreen('loginScreen');
             }
         });
@@ -319,17 +339,22 @@
         // User Profile Management
         async function loadUserProfile() {
             try {
+                console.log('Loading profile for user:', currentUser.id);
+                
                 const { data, error } = await supabase
-                    .from('user_profile')
+                    .from('user_profiles') // Fixed table name
                     .select('*')
                     .eq('user_id', currentUser.id)
                     .single();
+                
+                console.log('Profile query result:', data, error);
                 
                 if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
                     throw error;
                 }
                 
                 userProfile = data;
+                console.log('Loaded user profile:', userProfile);
             } catch (error) {
                 console.error('Error loading user profile:', error);
             }
@@ -337,27 +362,33 @@
 
         async function saveUserProfile() {
             try {
+                console.log('Saving profile:', { userGrade, userRegion });
+                
                 const profileData = {
                     user_id: currentUser.id,
-                    grade: userGrade,
-                    preferred_region: userRegion,
+                    grade: userGrade, // Will be stored as JSONB
+                    preferred_nation: userRegion, // Using preferred_nation as per schema
                     onboarding_complete: true,
                     updated_at: new Date().toISOString()
                 };
 
                 const { data, error } = await supabase
-                    .from('user_profile')
+                    .from('user_profiles') // Fixed table name
                     .upsert(profileData, { 
                         onConflict: 'user_id',
                         ignoreDuplicates: false 
                     });
                 
+                console.log('Profile save result:', data, error);
+                
                 if (error) throw error;
                 
                 userProfile = { ...profileData };
+                console.log('Profile saved successfully');
                 
             } catch (error) {
                 console.error('Error saving user profile:', error);
+                alert('Failed to save profile. Please try again.');
             }
         }
 
@@ -398,7 +429,7 @@
         async function selectRegion(region) {
             userRegion = region;
             document.getElementById('userRegionStories').textContent = region;
-            document.getElementById('userNameStories').textContent = currentUser.user_metadata.full_name || 'Student';
+            document.getElementById('userNameStories').textContent = currentUser.user_metadata.full_name || currentUser.email;
             
             document.querySelectorAll('#regionScreen .option-btn').forEach(btn => btn.classList.remove('selected'));
             event.target.classList.add('selected');
@@ -417,6 +448,8 @@
         // Story Management
         async function loadStories() {
             try {
+                console.log('Loading stories for region:', userRegion);
+                
                 let query = supabase.from('stories_raw').select('*');
                 
                 if (userRegion && userRegion !== 'Mixed') {
@@ -425,14 +458,17 @@
                 
                 const { data, error } = await query;
                 
+                console.log('Stories query result:', data, error);
+                
                 if (error) throw error;
                 
                 allStories = data || [];
+                console.log('Loaded stories:', allStories.length);
                 displayStories();
                 
             } catch (error) {
                 console.error('Error loading stories:', error);
-                showError('Failed to load stories. Please try again.');
+                showError('Failed to load stories. Please check your database connection.');
             }
         }
 
@@ -475,11 +511,15 @@
 
         async function loadUserProgress() {
             try {
+                console.log('Loading user progress for:', currentUser.id);
+                
                 const { data, error } = await supabase
                     .from('user_progress')
                     .select('story_id')
                     .eq('user_id', currentUser.id)
-                    .eq('completed', true);
+                    .not('completed', 'is', null); // Where completed is not null
+                
+                console.log('Progress query result:', data, error);
                 
                 if (error) throw error;
                 
@@ -487,6 +527,8 @@
                 data.forEach(progress => {
                     completedStories.add(progress.story_id);
                 });
+                
+                console.log('Completed stories:', Array.from(completedStories));
                 
             } catch (error) {
                 console.error('Error loading user progress:', error);
@@ -498,7 +540,7 @@
             const noStoriesMsg = document.getElementById('noCompletedStories');
             
             if (currentUser && userGrade) {
-                document.getElementById('userNameRead').textContent = currentUser.user_metadata.full_name || 'Student';
+                document.getElementById('userNameRead').textContent = currentUser.user_metadata.full_name || currentUser.email;
                 document.getElementById('userGradeRead').textContent = userGrade;
             }
             
@@ -609,19 +651,25 @@
             if (!currentStory) return;
             
             try {
+                console.log('Completing story:', currentStory.story_id);
+                
                 // Mark story as completed in database
-                const { error } = await supabase
+                const progressData = {
+                    user_id: currentUser.id,
+                    story_id: currentStory.story_id,
+                    completed: new Date().toISOString(),
+                    completed_at: new Date().toISOString(),
+                    last_read: new Date().toISOString()
+                };
+                
+                const { data, error } = await supabase
                     .from('user_progress')
-                    .upsert({
-                        user_id: currentUser.id,
-                        story_id: currentStory.story_id,
-                        completed: true,
-                        completed_at: new Date().toISOString(),
-                        last_read: new Date().toISOString()
-                    }, {
+                    .upsert(progressData, {
                         onConflict: 'user_id,story_id',
                         ignoreDuplicates: false
                     });
+                
+                console.log('Progress save result:', data, error);
                 
                 if (error) throw error;
                 
@@ -636,7 +684,11 @@
                 
             } catch (error) {
                 console.error('Error completing story:', error);
+                // Still update local state even if save fails
+                completedStories.add(currentStory.story_id);
                 alert('✅ Story completed! (Saving failed, but progress recorded locally)');
+                await loadStories();
+                showScreen('storiesScreen');
             }
         }
 
