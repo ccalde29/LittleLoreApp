@@ -658,6 +658,7 @@
             console.log('Auth state change:', event, session?.user?.email);
             
             if (event === 'SIGNED_IN' && session) {
+                console.log('Auth state: SIGNED_IN detected');
                 currentUser = session.user;
                 
                 // Show user info and navigation
@@ -666,30 +667,46 @@
                 document.getElementById('userNameHeader').textContent = currentUser.user_metadata.full_name || currentUser.email;
                 document.getElementById('userAvatar').src = currentUser.user_metadata.avatar_url || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
                 
-                // Load user profile and progress
-                await loadUserProfile();
-                await loadUserProgress();
-                
-                if (userProfile && userProfile.grade) {
-                    userGrade = userProfile.grade;
-                    userRegion = userProfile.preferred_nation;
+                // Only load profile if we don't already have it
+                if (!userProfile) {
+                    await loadUserProfile();
+                    await loadUserProgress();
                     
-                    // Update UI elements
-                    if (userGrade) {
-                        document.getElementById('userName').textContent = currentUser.user_metadata.full_name || currentUser.email;
-                        document.getElementById('userGrade').textContent = userGrade;
-                        document.getElementById('userGradeStories').textContent = userGrade;
-                        document.getElementById('userNameStories').textContent = currentUser.user_metadata.full_name || currentUser.email;
-                    }
-                    
-                    if (userRegion) {
-                        document.getElementById('userRegionStories').textContent = userRegion;
+                    if (userProfile && userProfile.grade) {
+                        userGrade = userProfile.grade;
+                        userRegion = userProfile.preferred_nation;
+                        
+                        // Update UI elements
+                        if (userGrade) {
+                            document.getElementById('userName').textContent = currentUser.user_metadata.full_name || currentUser.email;
+                            document.getElementById('userGrade').textContent = userGrade;
+                            document.getElementById('userGradeStories').textContent = userGrade;
+                            document.getElementById('userNameStories').textContent = currentUser.user_metadata.full_name || currentUser.email;
+                        }
+                        
+                        if (userRegion) {
+                            document.getElementById('userRegionStories').textContent = userRegion;
+                        }
                     }
                 }
                 
-                showHome();
+                // Only navigate to home if we're currently on login screen
+                if (currentScreen === 'loginScreen' || currentScreen === 'loadingScreen') {
+                    console.log('Navigating to home from auth state change');
+                    showHome();
+                }
                 
             } else if (event === 'SIGNED_OUT') {
+                console.log('Auth state: SIGNED_OUT detected');
+                
+                // Clear all state
+                currentUser = null;
+                userGrade = null;
+                userRegion = null;
+                userProfile = null;
+                completedStories.clear();
+                allStories = [];
+                
                 document.getElementById('userHeader').classList.add('hidden');
                 document.getElementById('navMenu').classList.add('hidden');
                 showScreen('loginScreen');
