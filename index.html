@@ -521,6 +521,25 @@
             updateProgressOnReadScreen();
         }
 
+        // COLLAPSIBLE CONTROLS FUNCTION
+        function toggleAdvancedControls() {
+            const advancedControls = document.getElementById('advancedControls');
+            const toggleBtn = document.getElementById('settingsToggle');
+            const toggleText = document.getElementById('settingsToggleText');
+            
+            if (advancedControls.classList.contains('visible')) {
+                // Hide advanced controls
+                advancedControls.classList.remove('visible');
+                toggleBtn.classList.remove('active');
+                toggleText.textContent = 'Settings';
+            } else {
+                // Show advanced controls
+                advancedControls.classList.add('visible');
+                toggleBtn.classList.add('active');
+                toggleText.textContent = 'Hide Settings';
+            }
+        }
+
         // ENHANCED READING FUNCTIONS WITH VOICE SYSTEM
         function readStory(story) {
             if (isReading) {
