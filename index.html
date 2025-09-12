@@ -530,9 +530,15 @@
             currentStory = story;
             document.getElementById('currentStoryNation').textContent = story.nation;
             document.getElementById('currentStoryTitle').textContent = story.title;
-            document.getElementById('currentStoryText').innerHTML = addWordHelpers(story.text);
             
-            // Initialize voice system and reset sliders
+            // Format story text with proper line breaks
+            let formattedText = story.text;
+            // Convert \n to actual line breaks and preserve formatting
+            formattedText = formattedText.replace(/\\n/g, '\n');
+            
+            document.getElementById('currentStoryText').innerHTML = addWordHelpers(formattedText);
+            
+            // Initialize voice system and reset sliders (load settings from Settings page)
             initializeVoiceSystem();
             updateSliderDisplays();
             applyCurrentFontSize();
