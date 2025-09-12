@@ -1390,29 +1390,52 @@
             .action-icon { font-size: 1.5rem; }
             .action-title { font-size: 1rem; }
             
-            /* Mobile slider adjustments */
+            /* Mobile horizontal scroll optimizations */
             .reading-controls { 
-                flex-direction: column; 
-                gap: 15px; 
-                align-items: stretch;
-            }
-            .slider-control { 
-                min-width: 200px; 
-                max-width: 100%;
-                margin: 0 auto;
-            }
-            .slider, .voice-dropdown { 
-                width: 160px; 
-            }
-            .voice-preview-btn {
-                margin-top: 5px;
+                gap: 12px;
+                padding: 15px 10px;
+                margin: 15px -10px; /* Extend to screen edges */
+                scroll-padding: 10px;
             }
             
-            /* Make buttons stack better on mobile */
             .control-btn {
-                flex: 1;
+                padding: 12px 18px;
+                font-size: 0.85rem;
                 min-width: 120px;
-                margin: 5px;
+            }
+            
+            .slider-control { 
+                min-width: 160px;
+                max-width: 160px;
+                padding: 18px;
+            }
+            
+            .slider, .voice-dropdown { 
+                width: 130px; 
+            }
+            
+            .voice-preview-btn {
+                margin-top: 5px;
+                width: 30px;
+                height: 30px;
+            }
+            
+            /* Add scroll hint */
+            .reading-controls::after {
+                content: '→';
+                position: absolute;
+                right: 5px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: rgba(78, 205, 196, 0.7);
+                font-size: 1.2rem;
+                pointer-events: none;
+                animation: scrollHint 2s ease-in-out infinite;
+            }
+            
+            @keyframes scrollHint {
+                0%, 100% { opacity: 0.7; transform: translateY(-50%) translateX(0); }
+                50% { opacity: 1; transform: translateY(-50%) translateX(3px); }
             }
         }
     </style>
