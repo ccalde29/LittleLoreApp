@@ -28,7 +28,7 @@
         .google-login-btn { background: #4285f4; color: white; border: none; border-radius: 50px; padding: 15px 30px; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 10px; }
         .google-login-btn:hover { background: #3367d6; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         
-        /* NEW HOME SCREEN STYLES */
+        /* HOME SCREEN STYLES */
         .home-screen { text-align: center; }
         .welcome-section { margin-bottom: 30px; }
         .welcome-title { font-size: 2rem; color: #333; margin-bottom: 10px; }
@@ -79,9 +79,134 @@
         
         .reading-view { max-height: 600px; overflow-y: auto; }
         .story-text { font-size: 1.2rem; line-height: 1.8; margin: 20px 0; text-align: justify; }
-        .reading-controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 20px 0; }
-        .control-btn { background: #4ecdc4; color: white; border: none; border-radius: 25px; padding: 10px 20px; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
-        .control-btn:hover { background: #45b7aa; transform: translateY(-2px); }
+        
+        /* UPDATED READING CONTROLS WITH SLIDERS */
+        .reading-controls { 
+            display: flex; 
+            gap: 15px; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            align-items: center; 
+            margin: 20px 0; 
+        }
+        .control-btn { 
+            background: #4ecdc4; 
+            color: white; 
+            border: none; 
+            border-radius: 25px; 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            font-size: 0.9rem; 
+        }
+        .control-btn:hover { 
+            background: #45b7aa; 
+            transform: translateY(-2px); 
+        }
+        
+        /* SLIDER CONTROLS */
+        .slider-control { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 8px; 
+            background: rgba(255,255,255,0.95); 
+            padding: 15px; 
+            border-radius: 15px; 
+            min-width: 140px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .slider-label { 
+            font-size: 0.85rem; 
+            font-weight: bold; 
+            color: #333; 
+            margin-bottom: 2px; 
+        }
+        .slider-value { 
+            font-size: 0.75rem; 
+            color: #666; 
+            margin-top: 3px; 
+            min-height: 1rem;
+        }
+        
+        .slider { 
+            -webkit-appearance: none;
+            appearance: none;
+            width: 120px; 
+            height: 8px; 
+            border-radius: 4px; 
+            background: #ddd; 
+            outline: none; 
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .slider:hover {
+            background: #ccc;
+        }
+        
+        /* WebKit browsers (Chrome, Safari, Edge) */
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4ecdc4;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            background: #45b7aa;
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+        }
+        
+        .slider::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #ddd;
+            border-radius: 4px;
+        }
+        
+        /* Firefox */
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4ecdc4;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .slider::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #ddd;
+            border-radius: 4px;
+            border: none;
+        }
+        
+        /* Focus styles for accessibility */
+        .slider:focus {
+            outline: none;
+        }
+        
+        .slider:focus::-webkit-slider-thumb {
+            outline: 2px solid #4ecdc4;
+            outline-offset: 2px;
+        }
+        
+        .slider:focus::-moz-range-thumb {
+            outline: 2px solid #4ecdc4;
+            outline-offset: 2px;
+        }
         
         .progress-bar { background: #e0e0e0; height: 8px; border-radius: 4px; margin: 20px 0; overflow: hidden; }
         .progress-fill { background: linear-gradient(90deg, #4ecdc4, #44a08d); height: 100%; transition: width 0.3s ease; }
@@ -170,7 +295,7 @@
             <p>Please wait while we prepare your reading adventure!</p>
         </div>
 
-        <!-- NEW HOME SCREEN -->
+        <!-- HOME SCREEN -->
         <div id="homeScreen" class="card home-screen hidden">
             <div class="welcome-section">
                 <h2 class="welcome-title">Welcome back, <span id="userNameHome">Reader</span>! 🌟</h2>
@@ -222,7 +347,7 @@
             </div>
         </div>
 
-        <!-- Settings Screen (NEW) -->
+        <!-- Settings Screen -->
         <div id="settingsScreen" class="card hidden">
             <button class="back-btn" onclick="showHome()">← Back to Home</button>
             <h2 style="text-align: center; margin-bottom: 30px;">⚙️ Settings</h2>
@@ -326,8 +451,20 @@
                     <button class="control-btn" onclick="toggleReadingAssist()">💡 Reading Help</button>
                     <button class="control-btn" id="audioBtn" onclick="toggleAudio()">🔊 Read Aloud</button>
                     <button class="control-btn" id="stopBtn" onclick="stopAudio()" style="display: none;">⏹️ Stop</button>
-                    <button class="control-btn" onclick="adjustSpeed()">⚡ Speed: <span id="speedDisplay">Normal</span></button>
-                    <button class="control-btn" onclick="adjustTextSize()">🔍 Text Size</button>
+                    
+                    <!-- Speed Slider -->
+                    <div class="slider-control">
+                        <div class="slider-label">🎵 Speed</div>
+                        <input type="range" id="speedSlider" class="slider" min="0.5" max="2.0" step="0.1" value="0.8" oninput="adjustSpeedSlider(this.value)">
+                        <div class="slider-value" id="speedValue">Normal</div>
+                    </div>
+                    
+                    <!-- Font Size Slider -->
+                    <div class="slider-control">
+                        <div class="slider-label">🔍 Text Size</div>
+                        <input type="range" id="fontSlider" class="slider" min="1" max="4" step="1" value="2" oninput="adjustFontSlider(this.value)">
+                        <div class="slider-value" id="fontValue">Medium</div>
+                    </div>
                 </div>
 
                 <div class="reading-assistance hidden" id="readingAssist">
@@ -361,7 +498,7 @@
         let userRegion = null;
         let currentStory = null;
         let completedStories = new Set();
-        let textSizeLevel = 1;
+        let textSizeLevel = 2; // Default to medium (1-4 scale)
         let allStories = [];
         let userProfile = null;
         
@@ -369,7 +506,7 @@
         let currentUtterance = null;
         let isReading = false;
         let isPaused = false;
-        let speechRate = 0.8;
+        let speechRate = 0.8; // Default to slower than normal for kids
 
         // Screen navigation
         let currentScreen = 'loginScreen';
@@ -398,7 +535,7 @@
             errorDiv.classList.remove('hidden');
         }
 
-        // NEW HOME SCREEN FUNCTIONS
+        // HOME SCREEN FUNCTIONS
         function showHome() {
             updateHomeScreen();
             showScreen('homeScreen');
@@ -420,7 +557,6 @@
             } else if (!userRegion) {
                 showRegionSelect();
             } else {
-                // Load stories and go to stories screen
                 loadStoriesAndShow();
             }
         }
@@ -434,7 +570,6 @@
             showLoading();
             await loadStories();
             
-            // Get unread stories
             const unreadStories = allStories.filter(story => !completedStories.has(story.story_id));
             
             if (unreadStories.length === 0) {
@@ -443,7 +578,6 @@
                 return;
             }
             
-            // Pick a random story
             const randomStory = unreadStories[Math.floor(Math.random() * unreadStories.length)];
             readStory(randomStory);
         }
@@ -503,7 +637,7 @@
                 userRegion = null;
                 currentStory = null;
                 completedStories.clear();
-                textSizeLevel = 1;
+                textSizeLevel = 2;
                 allStories = [];
                 userProfile = null;
                 
@@ -519,7 +653,7 @@
             }
         }
 
-        // IMPROVED AUTH STATE HANDLER - GOES TO HOME NOW
+        // AUTH STATE HANDLER
         supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('Auth state change:', event, session?.user?.email);
             
@@ -553,7 +687,6 @@
                     }
                 }
                 
-                // Always go to home screen after login - let user choose what to do
                 showHome();
                 
             } else if (event === 'SIGNED_OUT') {
@@ -648,14 +781,13 @@
             document.querySelectorAll('#gradeScreen .option-btn').forEach(btn => btn.classList.remove('selected'));
             event.target.classList.add('selected');
             
-            // Save profile immediately
             await saveUserProfile();
             
             setTimeout(() => {
                 if (userRegion) {
-                    showHome(); // Has both grade and region, go home
+                    showHome();
                 } else {
-                    showScreen('regionScreen'); // Still needs region
+                    showScreen('regionScreen');
                 }
             }, 500);
         }
@@ -668,11 +800,10 @@
             document.querySelectorAll('#regionScreen .option-btn').forEach(btn => btn.classList.remove('selected'));
             event.target.classList.add('selected');
             
-            // Save profile
             await saveUserProfile();
             
             setTimeout(() => {
-                showHome(); // Go to home after selecting region
+                showHome();
             }, 500);
         }
 
@@ -681,13 +812,12 @@
             try {
                 console.log('Loading stories for region:', userRegion, 'grade:', userGrade);
                 
-                // Get appropriate grade levels (current + 1 above, except 6-8)
                 const gradeOrder = ['K-1', '2-3', '4-5', '6-8'];
                 const userIndex = gradeOrder.indexOf(userGrade);
                 let allowedGrades = [userGrade];
                 
                 if (userIndex >= 0 && userIndex < gradeOrder.length - 1) {
-                    allowedGrades.push(gradeOrder[userIndex + 1]); // +1 grade above
+                    allowedGrades.push(gradeOrder[userIndex + 1]);
                 }
                 
                 console.log('Allowed grades:', allowedGrades);
@@ -722,7 +852,6 @@
             const noStoriesMessage = document.getElementById('noStoriesMessage');
             storiesGrid.innerHTML = '';
             
-            // Filter out completed stories
             const unreadStories = allStories.filter(story => !completedStories.has(story.story_id));
             
             if (unreadStories.length === 0) {
@@ -734,7 +863,6 @@
             storiesGrid.style.display = 'grid';
             noStoriesMessage.classList.add('hidden');
             
-            // Show random selection of unread stories (max 5)
             const randomStories = shuffleArray(unreadStories).slice(0, 5);
             
             randomStories.forEach(story => {
@@ -835,7 +963,6 @@
 
         // Reading Functions
         function readStory(story) {
-            // Stop any current audio
             if (isReading) {
                 stopAudio();
             }
@@ -844,32 +971,108 @@
             document.getElementById('currentStoryNation').textContent = story.nation;
             document.getElementById('currentStoryTitle').textContent = story.title;
             document.getElementById('currentStoryText').innerHTML = addWordHelpers(story.text);
+            
+            // Reset sliders to current values
+            updateSliderDisplays();
+            applyCurrentFontSize();
+            
             showScreen('readingScreen');
         }
 
-        // SMART WORD HIGHLIGHTING - LENGTH BASED
+        function updateSliderDisplays() {
+            document.getElementById('speedSlider').value = speechRate;
+            updateSpeedDisplay(speechRate);
+            
+            document.getElementById('fontSlider').value = textSizeLevel;
+            updateFontDisplay(textSizeLevel);
+        }
+
+        function updateSpeedDisplay(rate) {
+            const speedNames = {
+                0.5: 'Very Slow',
+                0.6: 'Slow',
+                0.7: 'Slow',
+                0.8: 'Normal',
+                0.9: 'Normal',
+                1.0: 'Fast',
+                1.1: 'Fast', 
+                1.2: 'Fast',
+                1.3: 'Faster',
+                1.4: 'Faster',
+                1.5: 'Faster',
+                1.6: 'Very Fast',
+                1.7: 'Very Fast',
+                1.8: 'Very Fast',
+                1.9: 'Very Fast',
+                2.0: 'Very Fast'
+            };
+            
+            const closestRate = Object.keys(speedNames).reduce((prev, curr) => 
+                Math.abs(curr - rate) < Math.abs(prev - rate) ? curr : prev
+            );
+            
+            document.getElementById('speedValue').textContent = speedNames[closestRate];
+        }
+
+        function updateFontDisplay(level) {
+            const fontNames = {
+                1: 'Small',
+                2: 'Medium', 
+                3: 'Large',
+                4: 'Extra Large'
+            };
+            
+            document.getElementById('fontValue').textContent = fontNames[level];
+        }
+
+        function adjustSpeedSlider(value) {
+            speechRate = parseFloat(value);
+            updateSpeedDisplay(speechRate);
+            
+            if (isReading && !isPaused) {
+                const wasReading = true;
+                stopAudio();
+                if (wasReading) {
+                    setTimeout(startAudio, 100);
+                }
+            }
+        }
+
+        function adjustFontSlider(value) {
+            textSizeLevel = parseInt(value);
+            updateFontDisplay(textSizeLevel);
+            applyCurrentFontSize();
+        }
+
+        function applyCurrentFontSize() {
+            const sizes = {
+                1: '1.0rem',
+                2: '1.2rem',
+                3: '1.5rem',
+                4: '1.8rem'
+            };
+            
+            document.getElementById('currentStoryText').style.fontSize = sizes[textSizeLevel];
+        }
+
+        // WORD HIGHLIGHTING
         function addWordHelpers(text) {
             if (!userGrade) return text;
             
-            // Length thresholds by grade
             const lengthThresholds = {
-                'K-1': 5,    // Words longer than 5 letters
-                '2-3': 7,    // Words longer than 7 letters  
-                '4-5': 8,    // Words longer than 8 letters
-                '6-8': 10    // Words longer than 10 letters
+                'K-1': 5,
+                '2-3': 7,
+                '4-5': 8,
+                '6-8': 10
             };
             
             const threshold = lengthThresholds[userGrade] || 8;
-            
-            // Split text into words and check each one
-            const words = text.split(/(\s+)/); // Keep whitespace
+            const words = text.split(/(\s+)/);
             
             const processedWords = words.map(word => {
-                // Only process actual words (not whitespace)
-                const cleanWord = word.replace(/[^\w]/g, ''); // Remove punctuation for length check
+                const cleanWord = word.replace(/[^\w]/g, '');
                 
                 if (cleanWord.length > threshold && /^[a-zA-Z]+/.test(cleanWord)) {
-                    // Highlight the word but preserve original punctuation
                     return word.replace(/\b[a-zA-Z]+\b/, match => 
                         `<span class="word-help" onclick="showWordHelp('${match.toLowerCase()}')" title="Click for help">${match}</span>`
                     );
@@ -884,7 +1087,7 @@
             document.getElementById('readingAssist').classList.toggle('hidden');
         }
 
-        // FULL AUDIO CONTROLS
+        // AUDIO CONTROLS
         function toggleAudio() {
             if (!('speechSynthesis' in window)) {
                 alert('🔊 Audio feature is not supported in your browser.');
@@ -893,18 +1096,15 @@
 
             if (isReading) {
                 if (isPaused) {
-                    // Resume
                     speechSynthesis.resume();
                     isPaused = false;
                     document.getElementById('audioBtn').innerHTML = '⏸️ Pause';
                 } else {
-                    // Pause
                     speechSynthesis.pause();
                     isPaused = true;
                     document.getElementById('audioBtn').innerHTML = '▶️ Resume';
                 }
             } else {
-                // Start reading
                 startAudio();
             }
         }
@@ -946,33 +1146,7 @@
             document.getElementById('stopBtn').style.display = 'none';
         }
 
-        function adjustSpeed() {
-            const speeds = [0.5, 0.8, 1.0, 1.5, 2.0];
-            const speedNames = ['Slow', 'Normal', 'Fast', 'Faster', 'Very Fast'];
-            const currentIndex = speeds.indexOf(speechRate);
-            const nextIndex = (currentIndex + 1) % speeds.length;
-            
-            speechRate = speeds[nextIndex];
-            document.getElementById('speedDisplay').textContent = speedNames[nextIndex];
-            
-            // If currently reading, restart with new speed
-            if (isReading && !isPaused) {
-                const wasReading = true;
-                stopAudio();
-                if (wasReading) {
-                    setTimeout(startAudio, 100);
-                }
-            }
-        }
-
-        function adjustTextSize() {
-            textSizeLevel = textSizeLevel >= 3 ? 1 : textSizeLevel + 1;
-            const sizes = ['1.2rem', '1.5rem', '1.8rem'];
-            document.getElementById('currentStoryText').style.fontSize = sizes[textSizeLevel - 1];
-        }
-
         function showWordHelp(word) {
-            // Basic definitions for common complex words
             const definitions = {
                 'magnificent': 'very beautiful and impressive',
                 'cunning': 'clever in a sneaky way',
@@ -1001,7 +1175,6 @@
             if (definition) {
                 alert(`💡 "${word}" means: ${definition}`);
             } else {
-                // Generic help for words without definitions
                 alert(`💡 "${word}" is a longer word that might be tricky. Sound it out slowly, or ask for help!`);
             }
         }
@@ -1050,7 +1223,6 @@
                 
                 alert(`🎉 Great job reading "${currentStory.title}"! You're becoming a wonderful reader!`);
                 
-                // Go back to home screen after completing
                 showHome();
                 
             } catch (error) {
