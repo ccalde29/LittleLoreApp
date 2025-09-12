@@ -109,9 +109,26 @@
             .action-title { font-size: 1rem; }
             
             /* Mobile slider adjustments */
-            .reading-controls { flex-direction: column; gap: 10px; }
-            .slider-control { min-width: 200px; }
-            .slider { width: 150px; }
+            .reading-controls { 
+                flex-direction: column; 
+                gap: 15px; 
+                align-items: stretch;
+            }
+            .slider-control { 
+                min-width: 200px; 
+                max-width: 100%;
+                margin: 0 auto;
+            }
+            .slider { 
+                width: 160px; 
+            }
+            
+            /* Make buttons stack better on mobile */
+            .control-btn {
+                flex: 1;
+                min-width: 120px;
+                margin: 5px;
+            }
         }
     </style>
 </head>
