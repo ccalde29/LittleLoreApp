@@ -1174,39 +1174,8 @@
         }
 
         function populateVoiceSelector() {
-            const selector = document.getElementById('voiceSelector');
-            selector.innerHTML = '';
-            
-            // Add options for each category that has voices
-            Object.entries(voiceCategories).forEach(([category, voices]) => {
-                if (voices.length > 0) {
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    selector.appendChild(option);
-                }
-            });
-            
-            // If no categorized voices, add all English voices
-            if (selector.children.length === 0) {
-                const englishVoices = availableVoices.filter(voice => 
-                    voice.lang.toLowerCase().includes('en')
-                );
-                
-                if (englishVoices.length > 0) {
-                    englishVoices.forEach(voice => {
-                        const option = document.createElement('option');
-                        option.value = voice.name;
-                        option.textContent = voice.name.length > 20 ? voice.name.substring(0, 20) + '...' : voice.name;
-                        selector.appendChild(option);
-                    });
-                } else {
-                    const option = document.createElement('option');
-                    option.value = '';
-                    option.textContent = 'Default Voice';
-                    selector.appendChild(option);
-                }
-            }
+            // This function is no longer needed since voice selector moved to settings
+            console.log('populateVoiceSelector called but voice controls are now in settings');
         }
 
         function selectBestDefaultVoice() {
