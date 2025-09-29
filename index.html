@@ -876,8 +876,8 @@
                     <!-- Speed Control -->
                     <div class="slider-control">
                         <div class="slider-label">🎵 Speed</div>
-                        <input type="range" id="speedSlider" class="slider" min="0.5" max="2.0" step="0.1" value="0.8" oninput="adjustSpeedSlider(this.value)">
-                        <div class="slider-value" id="speedValue">Normal</div>
+                        <input type="range" id="speedSlider" class="slider" min="0.5" max="2.0" step="0.1" value="0.75" oninput="adjustSpeedSlider(this.value)">
+                        <div class="slider-value" id="speedValue">Gentle</div>
                     </div>
                     
                     <!-- Voice Selection -->
@@ -929,8 +929,8 @@
     
     <script>
         /* ============================================================
-           LITTLE LORES APP - JAVASCRIPT v2.8
-           Main application logic for reading comprehension app
+           LITTLE LORES APP - JAVASCRIPT v3.0 - ENHANCED VOICE EDITION
+           Main application logic with natural storytelling voice
            ============================================================ */
 
         // ============================================================
@@ -962,12 +962,12 @@
         let previousScreen = null;
         let textSizeLevel = 2;
 
-        // Audio & Voice State
+        // Audio & Voice State - OPTIMIZED FOR STORYTELLING
         let currentUtterance = null;
         let isReading = false;
         let isPaused = false;
-        let speechRate = 0.8;
-        let speechPitch = 1.1;
+        let speechRate = 0.75;        // Default: Gentle pace for kids
+        let speechPitch = 1.1;        // Default: Warm, friendly tone
         let selectedVoice = null;
         let availableVoices = [];
         let preferredVoiceCategory = 'Narrator (Female)';
@@ -1549,7 +1549,7 @@
         }
 
         // ============================================================
-        // READING FUNCTIONS WITH VOICE SYSTEM
+        // READING FUNCTIONS WITH ENHANCED VOICE SYSTEM
         // ============================================================
 
         /**
@@ -1582,14 +1582,14 @@
         }
 
         // ============================================================
-        // VOICE SYSTEM FUNCTIONS
+        // ENHANCED VOICE SYSTEM FOR NATURAL STORYTELLING
         // ============================================================
 
         /**
          * Initialize the voice system for text-to-speech
          */
         async function initializeVoiceSystem() {
-            console.log('Initializing voice system...');
+            console.log('Initializing enhanced voice system...');
             
             // Wait for voices to load
             if (speechSynthesis.getVoices().length === 0) {
@@ -1605,12 +1605,77 @@
             if (availableVoices.length > 0) {
                 categorizeVoices();
                 populateVoiceSelector();
-                selectBestDefaultVoice();
+                selectBestStorytellingVoice(); // Enhanced selection
                 loadVoicePreferences();
             } else {
                 console.warn('No voices available');
                 document.getElementById('voiceSelector').innerHTML = 
                     '<option value="">Default Voice</option>';
+            }
+        }
+        
+        /**
+         * Select the best voice specifically for storytelling to children
+         * Prioritizes warm, clear, natural-sounding voices
+         */
+        function selectBestStorytellingVoice() {
+            console.log('Selecting best storytelling voice...');
+            
+            // Priority list: Best voices for reading to children
+            const storytellingPriorities = [
+                // macOS voices (excellent quality)
+                v => v.name.includes('Samantha') && v.lang.includes('en'),
+                v => v.name.includes('Karen') && v.lang.includes('en'),
+                v => v.name.includes('Moira') && v.lang.includes('en'),
+                v => v.name.includes('Tessa') && v.lang.includes('en'),
+                
+                // Google voices (very good quality)
+                v => v.name.includes('Google UK English Female'),
+                v => v.name.includes('Google US English Female'),
+                v => v.name.includes('Google') && v.name.includes('Female') && v.lang.includes('en'),
+                
+                // Microsoft voices (good quality)
+                v => v.name.includes('Microsoft Zira'),
+                v => v.name.includes('Microsoft Jenny'),
+                v => v.name.includes('Microsoft Aria'),
+                
+                // Natural/Neural voices (any platform)
+                v => v.name.toLowerCase().includes('natural') && v.lang.includes('en'),
+                v => v.name.toLowerCase().includes('neural') && v.lang.includes('en'),
+                v => v.name.toLowerCase().includes('premium') && v.lang.includes('en'),
+                
+                // Fallback: any female English voice
+                v => v.lang.includes('en-US') && isFemaleVoice(v.name.toLowerCase()),
+                v => v.lang.includes('en-GB') && isFemaleVoice(v.name.toLowerCase()),
+                v => v.lang.includes('en') && isFemaleVoice(v.name.toLowerCase()),
+                
+                // Last resort: any English voice
+                v => v.lang.includes('en')
+            ];
+            
+            // Try each priority until we find a match
+            for (const priority of storytellingPriorities) {
+                const match = availableVoices.find(priority);
+                if (match) {
+                    selectedVoice = match;
+                    console.log('Selected storytelling voice:', match.name);
+                    
+                    // Update UI
+                    const category = Object.keys(voiceCategories).find(cat => 
+                        voiceCategories[cat].includes(match)
+                    );
+                    if (category) {
+                        preferredVoiceCategory = category;
+                        document.getElementById('voiceSelector').value = category;
+                    }
+                    return;
+                }
+            }
+            
+            // Absolute fallback
+            if (availableVoices.length > 0) {
+                selectedVoice = availableVoices[0];
+                console.log('Using fallback voice:', selectedVoice.name);
             }
         }
 
@@ -1663,7 +1728,8 @@
                 'female', 'woman', 'samantha', 'alex', 'victoria', 'karen', 'moira',
                 'tessa', 'veena', 'fiona', 'kate', 'susan', 'allison', 'ava',
                 'serena', 'sara', 'anna', 'emma', 'joanna', 'kendra', 'kimberly',
-                'salli', 'raveena', 'aditi', 'priya', 'lekha', 'zira', 'hazel', 'nora'
+                'salli', 'raveena', 'aditi', 'priya', 'lekha', 'zira', 'hazel', 'nora',
+                'jenny', 'aria'
             ];
             
             return femaleKeywords.some(keyword => name.includes(keyword));
@@ -1677,7 +1743,8 @@
         function isHighQualityVoice(name) {
             const qualityKeywords = [
                 'neural', 'premium', 'enhanced', 'natural', 'wavenet', 'google',
-                'siri', 'samantha', 'alex', 'compact', 'quality', 'premium'
+                'siri', 'samantha', 'alex', 'compact', 'quality', 'premium',
+                'microsoft zira', 'microsoft jenny', 'microsoft aria', 'karen', 'moira'
             ];
             
             return qualityKeywords.some(keyword => name.includes(keyword));
@@ -1691,7 +1758,7 @@
         function isNaturalVoice(name) {
             const naturalKeywords = [
                 'neural', 'natural', 'expressive', 'conversational', 'storyteller',
-                'enhanced', 'premium'
+                'enhanced', 'premium', 'samantha', 'karen'
             ];
             
             return naturalKeywords.some(keyword => name.includes(keyword));
@@ -1732,37 +1799,6 @@
                     selector.innerHTML = '<option value="">Default Voice</option>';
                 }
             }
-        }
-
-        /**
-         * Select the best default voice from available options
-         */
-        function selectBestDefaultVoice() {
-            const preferredOrder = [
-                'Narrator (Female)', 'Teacher (Female)', 'Storyteller (Female)',
-                'Narrator (Male)', 'Teacher (Male)', 'Storyteller (Male)'
-            ];
-            
-            // Try to find voice in preferred order
-            for (const category of preferredOrder) {
-                if (voiceCategories[category].length > 0) {
-                    preferredVoiceCategory = category;
-                    selectedVoice = voiceCategories[category][0];
-                    document.getElementById('voiceSelector').value = category;
-                    break;
-                }
-            }
-            
-            // Fallback: use first English voice or any voice
-            if (!selectedVoice && availableVoices.length > 0) {
-                const englishVoice = availableVoices.find(voice => 
-                    voice.lang.toLowerCase().includes('en')
-                );
-                selectedVoice = englishVoice || availableVoices[0];
-                document.getElementById('voiceSelector').value = selectedVoice.name;
-            }
-            
-            console.log('Selected default voice:', selectedVoice?.name);
         }
 
         /**
@@ -1837,6 +1873,130 @@
             }
         }
 
+        /**
+         * Enhance text for more natural storytelling speech
+         * Adds strategic pauses and adjusts for better flow
+         * @param {string} text - Original story text
+         * @returns {string} Enhanced text with natural pauses
+         */
+        function enhanceTextForStorytelling(text) {
+            let enhanced = text;
+            
+            // Add breathing pauses at sentence endings (like a real reader)
+            enhanced = enhanced.replace(/\.\s+/g, '. ... ');
+            enhanced = enhanced.replace(/!\s+/g, '! ... ');
+            enhanced = enhanced.replace(/\?\s+/g, '? ... ');
+            
+            // Add slight pauses at commas (natural breathing)
+            enhanced = enhanced.replace(/,\s+/g, ', . ');
+            
+            // Add pauses at colons (building anticipation)
+            enhanced = enhanced.replace(/:\s+/g, ': .. ');
+            
+            // Add pauses at semicolons
+            enhanced = enhanced.replace(/;\s+/g, '; .. ');
+            
+            // Add pause before opening quotes (preparing for dialogue)
+            enhanced = enhanced.replace(/\s+"/g, ' .. "');
+            
+            // Add pause after closing quotes (finishing dialogue)
+            enhanced = enhanced.replace(/"\s+/g, '" .. ');
+            
+            // Add pauses at em-dashes (dramatic pause)
+            enhanced = enhanced.replace(/--/g, ' ... ');
+            enhanced = enhanced.replace(/—/g, ' ... ');
+            
+            // Add slight pause at paragraph breaks (if any)
+            enhanced = enhanced.replace(/\n\n/g, '\n ... \n');
+            
+            // Add emphasis pauses before exclamations
+            enhanced = enhanced.replace(/([A-Z][a-z]+)!/g, '$1 !');
+            
+            return enhanced;
+        }
+        
+        /**
+         * Detect story mood/emotion to adjust voice settings
+         * @param {string} text - Story text to analyze
+         * @returns {string} Mood type: calm, exciting, mysterious, sad, happy
+         */
+        function detectStoryMood(text) {
+            const lowerText = text.toLowerCase();
+            
+            // Exciting/Action words
+            const excitingWords = ['suddenly', 'amazing', 'wonderful', 'ran', 'jumped', 'hurried', 'quickly', 'adventure', 'discovered', 'exciting'];
+            const excitingCount = excitingWords.filter(word => lowerText.includes(word)).length;
+            
+            // Calm/Peaceful words
+            const calmWords = ['peaceful', 'quiet', 'gentle', 'slowly', 'softly', 'calm', 'rest', 'sleep', 'dream'];
+            const calmCount = calmWords.filter(word => lowerText.includes(word)).length;
+            
+            // Mysterious words
+            const mysteriousWords = ['mysterious', 'strange', 'curious', 'wondered', 'secret', 'hidden', 'whispered'];
+            const mysteriousCount = mysteriousWords.filter(word => lowerText.includes(word)).length;
+            
+            // Sad words
+            const sadWords = ['sad', 'cried', 'tears', 'lonely', 'missed', 'lost', 'goodbye'];
+            const sadCount = sadWords.filter(word => lowerText.includes(word)).length;
+            
+            // Happy words
+            const happyWords = ['happy', 'joy', 'smiled', 'laughed', 'celebration', 'wonderful', 'delighted', 'cheerful'];
+            const happyCount = happyWords.filter(word => lowerText.includes(word)).length;
+            
+            // Determine dominant mood
+            const moods = {
+                exciting: excitingCount,
+                calm: calmCount,
+                mysterious: mysteriousCount,
+                sad: sadCount,
+                happy: happyCount
+            };
+            
+            const dominantMood = Object.keys(moods).reduce((a, b) => 
+                moods[a] > moods[b] ? a : b
+            );
+            
+            // Return calm as default if no strong signals
+            return moods[dominantMood] > 1 ? dominantMood : 'calm';
+        }
+        
+        /**
+         * Get voice settings optimized for story mood
+         * @param {string} mood - Story mood type
+         * @returns {Object} Voice settings {rate, pitch, volume}
+         */
+        function getStorytellingVoiceSettings(mood) {
+            const settings = {
+                calm: { 
+                    rate: 0.75,   // Slow, soothing
+                    pitch: 1.0,   // Natural pitch
+                    volume: 0.85  // Softer
+                },
+                exciting: { 
+                    rate: 0.88,   // A bit faster
+                    pitch: 1.2,   // Higher pitch for energy
+                    volume: 0.95  // Slightly louder
+                },
+                mysterious: { 
+                    rate: 0.70,   // Very slow for suspense
+                    pitch: 0.95,  // Slightly lower
+                    volume: 0.80  // Quieter
+                },
+                sad: { 
+                    rate: 0.68,   // Very slow
+                    pitch: 0.90,  // Lower pitch
+                    volume: 0.80  // Softer
+                },
+                happy: { 
+                    rate: 0.85,   // Moderately fast
+                    pitch: 1.15,  // Brighter
+                    volume: 0.90  // Pleasant volume
+                }
+            };
+            
+            return settings[mood] || settings.calm;
+        }
+
         // ============================================================
         // SLIDER CONTROL FUNCTIONS
         // ============================================================
@@ -1861,8 +2021,8 @@
          */
         function updateSpeedDisplay(rate) {
             const speedNames = {
-                0.5: 'Very Slow', 0.6: 'Slow', 0.7: 'Slow', 0.8: 'Normal', 0.9: 'Normal',
-                1.0: 'Fast', 1.1: 'Fast', 1.2: 'Fast', 1.3: 'Faster', 1.4: 'Faster',
+                0.5: 'Very Slow', 0.6: 'Slow', 0.7: 'Gentle', 0.8: 'Calm', 0.9: 'Steady',
+                1.0: 'Normal', 1.1: 'Brisk', 1.2: 'Quick', 1.3: 'Fast', 1.4: 'Fast',
                 1.5: 'Faster', 1.6: 'Very Fast', 1.7: 'Very Fast', 1.8: 'Very Fast',
                 1.9: 'Very Fast', 2.0: 'Very Fast'
             };
@@ -2019,16 +2179,29 @@
         }
 
         /**
-         * Start audio playback of current story
+         * Start audio playback of current story with enhanced natural voice
          */
         function startAudio() {
             const text = document.getElementById('currentStoryText').textContent;
-            currentUtterance = new SpeechSynthesisUtterance(text);
             
-            // Apply voice settings
+            // Detect story mood and get optimal settings
+            const storyMood = detectStoryMood(text);
+            const voiceSettings = getStorytellingVoiceSettings(storyMood);
+            
+            console.log('Story mood detected:', storyMood, 'Settings:', voiceSettings);
+            
+            // Enhance text with natural pauses
+            const enhancedText = enhanceTextForStorytelling(text);
+            
+            currentUtterance = new SpeechSynthesisUtterance(enhancedText);
+            
+            // Apply storytelling-optimized voice settings
             if (selectedVoice) currentUtterance.voice = selectedVoice;
-            currentUtterance.rate = speechRate;
-            currentUtterance.pitch = speechPitch;
+            
+            // Use mood-based settings, but allow user overrides
+            currentUtterance.rate = speechRate || voiceSettings.rate;
+            currentUtterance.pitch = speechPitch || voiceSettings.pitch;
+            currentUtterance.volume = voiceSettings.volume;
             
             // Set up event handlers
             currentUtterance.onstart = () => {
@@ -2211,7 +2384,7 @@
          * Initialize the application when DOM is ready
          */
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log('Little Lores app initializing...');
+            console.log('Little Lores app initializing with enhanced voice...');
             
             showLoading();
             
