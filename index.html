@@ -1557,13 +1557,29 @@
          * @param {Object} story - Story object from database
          */
         function readStory(story) {
-			// Just fetch and play the pre-generated audio
-			const audioPlayer = new Audio(story.audio_url);
-			audioPlayer.play();
-  
-			// Optional: Keep speed control (HTML5 supports playbackRate)
-			audioPlayer.playbackRate = userSpeedPreference; // 0.75x to 1.25x
-}
+            if (isReading) stopAudio();
+            
+            currentStory = story;
+            document.getElementById('currentStoryNation').textContent = story.nation;
+            document.getElementById('currentStoryTitle').textContent = story.title;
+            
+            // Format story text with proper line breaks
+            let formattedText = story.text
+                .replace(/\\n/g, '\n')  // Convert \n to actual line breaks
+                .replace(/\r\n/g, '\n') // Normalize Windows line endings
+                .replace(/\r/g, '\n');  // Normalize Mac line endings
+            
+            // Set text content with proper formatting and word helpers
+            document.getElementById('currentStoryText').textContent = formattedText;
+            document.getElementById('currentStoryText').innerHTML = addWordHelpers(formattedText);
+            
+            // Initialize reading interface
+            initializeVoiceSystem();
+            updateSliderDisplays();
+            applyCurrentFontSize();
+            
+            showScreen('readingScreen');
+        }
 
         // ============================================================
         // ENHANCED VOICE SYSTEM FOR NATURAL STORYTELLING
