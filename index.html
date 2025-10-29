@@ -6,7 +6,7 @@
     <title>Little Lores - Learn to Read</title>
     <style>
         /* ============================================================
-           LITTLE LORES APP STYLES - v2.8
+           LITTLE LORES APP STYLES - v3.0 CLEAN
            Reading comprehension app for kids with global stories
            ============================================================ */
 
@@ -369,7 +369,7 @@
         }
 
         /* ============================================================
-           VOICE & SLIDER CONTROLS
+           FONT SIZE CONTROL
            ============================================================ */
 
         .slider-control { 
@@ -396,47 +396,6 @@
             color: #666; 
             margin-top: 3px; 
             min-height: 1rem; 
-        }
-        
-        /* Voice Dropdown */
-        .voice-dropdown {
-            width: 120px;
-            padding: 6px 8px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            background: white;
-            font-size: 0.8rem;
-            color: #333;
-            cursor: pointer;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        
-        .voice-dropdown:hover, 
-        .voice-dropdown:focus {
-            border-color: #4ecdc4;
-        }
-        
-        /* Voice Preview Button */
-        .voice-preview-btn {
-            background: #4ecdc4;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            cursor: pointer;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-            margin-top: 2px;
-        }
-        
-        .voice-preview-btn:hover {
-            background: #45b7aa;
-            transform: scale(1.1);
         }
         
         /* Slider Styling */
@@ -615,7 +574,6 @@
                 gap: 12px;
                 padding: 15px 10px;
                 margin: 15px -10px;
-                scroll-padding: 10px;
             }
             
             .control-btn {
@@ -625,19 +583,9 @@
             }
             
             .slider-control { 
-                min-width: 160px;
+                min-width: 140px;
                 max-width: 160px;
                 padding: 18px;
-            }
-            
-            .slider, .voice-dropdown { 
-                width: 130px; 
-            }
-            
-            .voice-preview-btn {
-                margin-top: 5px;
-                width: 30px;
-                height: 30px;
             }
         }
     </style>
@@ -866,35 +814,11 @@
                 <div class="story-nation" id="currentStoryNation"></div>
                 <h2 class="story-title" id="currentStoryTitle"></h2>
                 
-                <!-- Reading Controls - Voice, Speed, Text Size -->
+                <!-- Reading Controls -->
                 <div class="reading-controls">
                     <!-- Basic Controls -->
                     <button class="control-btn" onclick="toggleReadingAssist()">💡 Reading Help</button>
-                    <button class="control-btn" id="audioBtn" onclick="toggleAudio()">🔊 Read Aloud</button>
-                    <button class="control-btn" id="stopBtn" onclick="stopAudio()" style="display: none;">⏹️ Stop</button>
-                    
-                    <!-- Speed Control -->
-                    <div class="slider-control">
-                        <div class="slider-label">🎵 Speed</div>
-                        <input type="range" id="speedSlider" class="slider" min="0.5" max="2.0" step="0.1" value="0.75" oninput="adjustSpeedSlider(this.value)">
-                        <div class="slider-value" id="speedValue">Gentle</div>
-                    </div>
-                    
-                    <!-- Voice Selection -->
-                    <div class="slider-control">
-                        <div class="slider-label">🎭 Voice</div>
-                        <select id="voiceSelector" class="voice-dropdown" onchange="changeVoice(this.value)">
-                            <option value="">Loading voices...</option>
-                        </select>
-                        <button class="voice-preview-btn" onclick="previewVoice()" title="Test this voice">▶️</button>
-                    </div>
-                    
-                    <!-- Pitch/Tone Control -->
-                    <div class="slider-control">
-                        <div class="slider-label">🎶 Tone</div>
-                        <input type="range" id="pitchSlider" class="slider" min="0.7" max="1.5" step="0.1" value="1.1" oninput="adjustPitchSlider(this.value)">
-                        <div class="slider-value" id="pitchValue">Warm</div>
-                    </div>
+                    <button class="control-btn" id="audioBtn" onclick="toggleAudio()">🔊 Play Audio</button>
                     
                     <!-- Font Size Control -->
                     <div class="slider-control">
@@ -929,8 +853,8 @@
     
     <script>
         /* ============================================================
-           LITTLE LORES APP - JAVASCRIPT v3.0 - ENHANCED VOICE EDITION
-           Main application logic with natural storytelling voice
+           LITTLE LORES APP - JAVASCRIPT v3.0 CLEAN
+           Simplified with pre-generated audio files
            ============================================================ */
 
         // ============================================================
@@ -962,37 +886,17 @@
         let previousScreen = null;
         let textSizeLevel = 2;
 
-        // Audio & Voice State - OPTIMIZED FOR STORYTELLING
-        let currentUtterance = null;
-        let isReading = false;
-        let isPaused = false;
-        let speechRate = 0.75;        // Default: Gentle pace for kids
-        let speechPitch = 1.1;        // Default: Warm, friendly tone
-        let selectedVoice = null;
-        let availableVoices = [];
-        let preferredVoiceCategory = 'Narrator (Female)';
-
-        // Voice Categories for Organization
-        let voiceCategories = {
-            'Narrator (Female)': [],
-            'Narrator (Male)': [],
-            'Teacher (Female)': [],
-            'Teacher (Male)': [],
-            'Storyteller (Female)': [],
-            'Storyteller (Male)': []
-        };
+        // Audio State - Simple audio player for pre-generated files
+        let currentAudio = null;
+        let isPlaying = false;
 
         // ============================================================
         // SCREEN NAVIGATION FUNCTIONS
         // ============================================================
 
-        /**
-         * Navigate between different app screens
-         * @param {string} screenId - The ID of the screen to show
-         */
         function showScreen(screenId) {
             // Stop audio if leaving reading screen
-            if (currentScreen === 'readingScreen' && isReading) {
+            if (currentScreen === 'readingScreen' && isPlaying) {
                 stopAudio();
             }
             
@@ -1024,24 +928,17 @@
             showScreen('homeScreen');
         }
 
-        /**
-         * Update home screen with current user stats
-         */
         function updateHomeScreen() {
             if (currentUser) {
                 document.getElementById('userNameHome').textContent = 
                     currentUser.user_metadata.full_name || 'Reader';
             }
             
-            // Update reading statistics
             document.getElementById('statsCompleted').textContent = completedStories.size;
             document.getElementById('statsGrade').textContent = userGrade || '-';
             document.getElementById('statsRegion').textContent = userRegion || '-';
         }
 
-        /**
-         * Handle continue reading action - navigate to appropriate screen
-         */
         function continueReading() {
             if (!userGrade) {
                 showGradeSelect();
@@ -1052,9 +949,6 @@
             }
         }
 
-        /**
-         * Show a random surprise story for the user
-         */
         async function surpriseStory() {
             if (!userGrade || !userRegion) {
                 continueReading();
@@ -1072,7 +966,6 @@
                 return;
             }
             
-            // Select random unread story
             const randomStory = unreadStories[Math.floor(Math.random() * unreadStories.length)];
             readStory(randomStory);
         }
@@ -1105,9 +998,6 @@
         // AUTHENTICATION FUNCTIONS
         // ============================================================
 
-        /**
-         * Handle Google OAuth login
-         */
         async function handleLogin() {
             try {
                 showLoading();
@@ -1128,14 +1018,11 @@
             }
         }
 
-        /**
-         * Handle user logout - clear all data and return to login
-         */
         async function logout() {
             try {
                 console.log('Logging out user...');
                 
-                if (isReading) stopAudio();
+                if (isPlaying) stopAudio();
                 
                 const { error } = await supabase.auth.signOut();
                 if (error) console.error('Supabase logout error:', error);
@@ -1165,7 +1052,6 @@
                 
             } catch (error) {
                 console.error('Logout error:', error);
-                // Fallback logout procedure
                 document.getElementById('navMenu').classList.add('hidden');
                 document.getElementById('userHeader').classList.add('hidden');
                 showScreen('loginScreen');
@@ -1177,9 +1063,6 @@
         // AUTHENTICATION STATE HANDLER
         // ============================================================
 
-        /**
-         * Handle authentication state changes from Supabase
-         */
         supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('Auth state change:', event, session?.user?.email);
             
@@ -1187,7 +1070,6 @@
                 console.log('User signed in');
                 currentUser = session.user;
                 
-                // Show user interface
                 document.getElementById('navMenu').classList.remove('hidden');
                 document.getElementById('userHeader').classList.remove('hidden');
                 document.getElementById('userNameHeader').textContent = 
@@ -1196,7 +1078,6 @@
                     currentUser.user_metadata.avatar_url || 
                     'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
                 
-                // Load user profile and progress
                 if (!userProfile) {
                     await loadUserProfile();
                     await loadUserProgress();
@@ -1205,7 +1086,6 @@
                         userGrade = userProfile.grade;
                         userRegion = userProfile.preferred_nation;
                         
-                        // Update UI with user data
                         if (userGrade) {
                             document.getElementById('userName').textContent = 
                                 currentUser.user_metadata.full_name || currentUser.email;
@@ -1221,7 +1101,6 @@
                     }
                 }
                 
-                // Navigate to home screen
                 if (currentScreen === 'loginScreen' || currentScreen === 'loadingScreen') {
                     showHome();
                 }
@@ -1229,7 +1108,6 @@
             } else if (event === 'SIGNED_OUT') {
                 console.log('User signed out');
                 
-                // Reset all state
                 currentUser = null;
                 userGrade = null;
                 userRegion = null;
@@ -1237,7 +1115,6 @@
                 completedStories.clear();
                 allStories = [];
                 
-                // Hide user interface
                 document.getElementById('userHeader').classList.add('hidden');
                 document.getElementById('navMenu').classList.add('hidden');
                 showScreen('loginScreen');
@@ -1248,9 +1125,6 @@
         // USER PROFILE MANAGEMENT
         // ============================================================
 
-        /**
-         * Load user profile from Supabase database
-         */
         async function loadUserProfile() {
             try {
                 console.log('Loading profile for user:', currentUser.id);
@@ -1270,9 +1144,6 @@
             }
         }
 
-        /**
-         * Save user profile to Supabase database
-         */
         async function saveUserProfile() {
             try {
                 console.log('Saving profile:', { userGrade, userRegion });
@@ -1330,23 +1201,17 @@
         // GRADE AND REGION SELECTION
         // ============================================================
 
-        /**
-         * Handle grade selection
-         * @param {string} grade - Selected grade level
-         */
         async function selectGrade(grade) {
             userGrade = grade;
             document.getElementById('userGrade').textContent = grade;
             document.getElementById('userGradeStories').textContent = grade;
             
-            // Visual feedback
             document.querySelectorAll('#gradeScreen .option-btn').forEach(btn => 
                 btn.classList.remove('selected'));
             event.target.classList.add('selected');
             
             await saveUserProfile();
             
-            // Navigate to next step
             setTimeout(() => {
                 if (userRegion) {
                     showHome();
@@ -1356,24 +1221,18 @@
             }, 500);
         }
 
-        /**
-         * Handle region selection
-         * @param {string} region - Selected world region
-         */
         async function selectRegion(region) {
             userRegion = region;
             document.getElementById('userRegionStories').textContent = region;
             document.getElementById('userNameStories').textContent = 
                 currentUser.user_metadata.full_name || currentUser.email;
             
-            // Visual feedback
             document.querySelectorAll('#regionScreen .option-btn').forEach(btn => 
                 btn.classList.remove('selected'));
             event.target.classList.add('selected');
             
             await saveUserProfile();
             
-            // Navigate to home
             setTimeout(() => showHome(), 500);
         }
 
@@ -1381,14 +1240,10 @@
         // STORY MANAGEMENT FUNCTIONS
         // ============================================================
 
-        /**
-         * Load stories from Supabase based on user grade and region
-         */
         async function loadStories() {
             try {
                 console.log('Loading stories for region:', userRegion, 'grade:', userGrade);
                 
-                // Determine allowed grade levels (current + next level)
                 const gradeOrder = ['K-1', '2-3', '4-5', '6-8'];
                 const userIndex = gradeOrder.indexOf(userGrade);
                 let allowedGrades = [userGrade];
@@ -1397,7 +1252,6 @@
                     allowedGrades.push(gradeOrder[userIndex + 1]);
                 }
                 
-                // Build database query
                 let query = supabase
                     .from('stories_raw')
                     .select('*')
@@ -1420,15 +1274,11 @@
             }
         }
 
-        /**
-         * Display stories in the stories grid
-         */
         function displayStories() {
             const storiesGrid = document.getElementById('storiesGrid');
             const noStoriesMessage = document.getElementById('noStoriesMessage');
             storiesGrid.innerHTML = '';
             
-            // Filter unread stories
             const unreadStories = allStories.filter(story => 
                 !completedStories.has(story.story_id));
             
@@ -1441,7 +1291,6 @@
             storiesGrid.style.display = 'grid';
             noStoriesMessage.classList.add('hidden');
             
-            // Show 5 random stories
             const randomStories = shuffleArray(unreadStories).slice(0, 5);
             
             randomStories.forEach(story => {
@@ -1461,9 +1310,6 @@
             updateProgress();
         }
 
-        /**
-         * Load user's reading progress from database
-         */
         async function loadUserProgress() {
             try {
                 console.log('Loading user progress for:', currentUser.id);
@@ -1491,14 +1337,10 @@
             }
         }
 
-        /**
-         * Load and display completed stories
-         */
         async function loadCompletedStories() {
             const completedGrid = document.getElementById('completedStoriesGrid');
             const noStoriesMsg = document.getElementById('noCompletedStories');
             
-            // Update user info display
             if (currentUser && userGrade) {
                 document.getElementById('userNameRead').textContent = 
                     currentUser.user_metadata.full_name || currentUser.email;
@@ -1516,7 +1358,6 @@
             completedGrid.innerHTML = '';
             
             try {
-                // Fetch completed story details
                 const completedIds = Array.from(completedStories);
                 const { data, error } = await supabase
                     .from('stories_raw')
@@ -1525,7 +1366,6 @@
                 
                 if (error) throw error;
                 
-                // Display completed stories
                 data.forEach(story => {
                     const storyCard = document.createElement('div');
                     storyCard.className = 'story-card completed';
@@ -1549,586 +1389,117 @@
         }
 
         // ============================================================
-        // READING FUNCTIONS WITH ENHANCED VOICE SYSTEM
+        // READING FUNCTIONS
         // ============================================================
 
-        /**
-         * Start reading a selected story
-         * @param {Object} story - Story object from database
-         */
         function readStory(story) {
-            if (isReading) stopAudio();
+            if (isPlaying) stopAudio();
             
             currentStory = story;
             document.getElementById('currentStoryNation').textContent = story.nation;
             document.getElementById('currentStoryTitle').textContent = story.title;
             
-            // Format story text with proper line breaks
             let formattedText = story.text
-                .replace(/\\n/g, '\n')  // Convert \n to actual line breaks
-                .replace(/\r\n/g, '\n') // Normalize Windows line endings
-                .replace(/\r/g, '\n');  // Normalize Mac line endings
+                .replace(/\\n/g, '\n')
+                .replace(/\r\n/g, '\n')
+                .replace(/\r/g, '\n');
             
-            // Set text content with proper formatting and word helpers
             document.getElementById('currentStoryText').textContent = formattedText;
             document.getElementById('currentStoryText').innerHTML = addWordHelpers(formattedText);
             
-            // Initialize reading interface
-            initializeVoiceSystem();
-            updateSliderDisplays();
+            updateFontDisplay(textSizeLevel);
             applyCurrentFontSize();
             
             showScreen('readingScreen');
         }
 
         // ============================================================
-        // ENHANCED VOICE SYSTEM FOR NATURAL STORYTELLING
+        // AUDIO CONTROL FUNCTIONS - SIMPLIFIED
         // ============================================================
 
-        /**
-         * Initialize the voice system for text-to-speech
-         */
-        async function initializeVoiceSystem() {
-            console.log('Initializing enhanced voice system...');
-            
-            // Wait for voices to load
-            if (speechSynthesis.getVoices().length === 0) {
-                await new Promise(resolve => {
-                    speechSynthesis.onvoiceschanged = resolve;
-                    setTimeout(resolve, 1000); // Fallback timeout
-                });
+        function toggleAudio() {
+            if (!currentStory || !currentStory.audio_url) {
+                alert('🔊 Audio for this story is coming soon!');
+                return;
             }
-            
-            availableVoices = speechSynthesis.getVoices();
-            console.log('Found voices:', availableVoices.length);
-            
-            if (availableVoices.length > 0) {
-                categorizeVoices();
-                populateVoiceSelector();
-                selectBestStorytellingVoice(); // Enhanced selection
-                loadVoicePreferences();
-            } else {
-                console.warn('No voices available');
-                document.getElementById('voiceSelector').innerHTML = 
-                    '<option value="">Default Voice</option>';
-            }
-        }
-        
-        /**
-         * Select the best voice specifically for storytelling to children
-         * Prioritizes warm, clear, natural-sounding voices
-         */
-        function selectBestStorytellingVoice() {
-            console.log('Selecting best storytelling voice...');
-            
-            // Priority list: Best voices for reading to children
-            const storytellingPriorities = [
-                // macOS voices (excellent quality)
-                v => v.name.includes('Samantha') && v.lang.includes('en'),
-                v => v.name.includes('Karen') && v.lang.includes('en'),
-                v => v.name.includes('Moira') && v.lang.includes('en'),
-                v => v.name.includes('Tessa') && v.lang.includes('en'),
-                
-                // Google voices (very good quality)
-                v => v.name.includes('Google UK English Female'),
-                v => v.name.includes('Google US English Female'),
-                v => v.name.includes('Google') && v.name.includes('Female') && v.lang.includes('en'),
-                
-                // Microsoft voices (good quality)
-                v => v.name.includes('Microsoft Zira'),
-                v => v.name.includes('Microsoft Jenny'),
-                v => v.name.includes('Microsoft Aria'),
-                
-                // Natural/Neural voices (any platform)
-                v => v.name.toLowerCase().includes('natural') && v.lang.includes('en'),
-                v => v.name.toLowerCase().includes('neural') && v.lang.includes('en'),
-                v => v.name.toLowerCase().includes('premium') && v.lang.includes('en'),
-                
-                // Fallback: any female English voice
-                v => v.lang.includes('en-US') && isFemaleVoice(v.name.toLowerCase()),
-                v => v.lang.includes('en-GB') && isFemaleVoice(v.name.toLowerCase()),
-                v => v.lang.includes('en') && isFemaleVoice(v.name.toLowerCase()),
-                
-                // Last resort: any English voice
-                v => v.lang.includes('en')
-            ];
-            
-            // Try each priority until we find a match
-            for (const priority of storytellingPriorities) {
-                const match = availableVoices.find(priority);
-                if (match) {
-                    selectedVoice = match;
-                    console.log('Selected storytelling voice:', match.name);
-                    
-                    // Update UI
-                    const category = Object.keys(voiceCategories).find(cat => 
-                        voiceCategories[cat].includes(match)
-                    );
-                    if (category) {
-                        preferredVoiceCategory = category;
-                        document.getElementById('voiceSelector').value = category;
-                    }
-                    return;
-                }
-            }
-            
-            // Absolute fallback
-            if (availableVoices.length > 0) {
-                selectedVoice = availableVoices[0];
-                console.log('Using fallback voice:', selectedVoice.name);
-            }
-        }
 
-        /**
-         * Categorize available voices by type and gender
-         */
-        function categorizeVoices() {
-            // Reset categories
-            Object.keys(voiceCategories).forEach(key => {
-                voiceCategories[key] = [];
-            });
-            
-            availableVoices.forEach(voice => {
-                const name = voice.name.toLowerCase();
-                const lang = voice.lang.toLowerCase();
-                
-                // Skip non-English voices
-                if (!lang.includes('en')) return;
-                
-                // Determine voice characteristics
-                const isFemale = isFemaleVoice(name);
-                const isMale = !isFemale;
-                const isHighQuality = isHighQualityVoice(name);
-                const isNatural = isNaturalVoice(name);
-                
-                // Categorize voices based on quality and gender
-                if (isHighQuality && isFemale) {
-                    voiceCategories['Narrator (Female)'].push(voice);
-                    if (isNatural) voiceCategories['Storyteller (Female)'].push(voice);
-                } else if (isHighQuality && isMale) {
-                    voiceCategories['Narrator (Male)'].push(voice);
-                    if (isNatural) voiceCategories['Storyteller (Male)'].push(voice);
-                } else if (isFemale) {
-                    voiceCategories['Teacher (Female)'].push(voice);
-                } else if (isMale) {
-                    voiceCategories['Teacher (Male)'].push(voice);
-                }
-            });
-            
-            console.log('Voice categories:', voiceCategories);
-        }
-
-        /**
-         * Determine if voice is female based on name patterns
-         * @param {string} name - Voice name to analyze
-         * @returns {boolean} True if voice appears to be female
-         */
-        function isFemaleVoice(name) {
-            const femaleKeywords = [
-                'female', 'woman', 'samantha', 'alex', 'victoria', 'karen', 'moira',
-                'tessa', 'veena', 'fiona', 'kate', 'susan', 'allison', 'ava',
-                'serena', 'sara', 'anna', 'emma', 'joanna', 'kendra', 'kimberly',
-                'salli', 'raveena', 'aditi', 'priya', 'lekha', 'zira', 'hazel', 'nora',
-                'jenny', 'aria'
-            ];
-            
-            return femaleKeywords.some(keyword => name.includes(keyword));
-        }
-
-        /**
-         * Determine if voice is high quality based on name patterns
-         * @param {string} name - Voice name to analyze
-         * @returns {boolean} True if voice appears to be high quality
-         */
-        function isHighQualityVoice(name) {
-            const qualityKeywords = [
-                'neural', 'premium', 'enhanced', 'natural', 'wavenet', 'google',
-                'siri', 'samantha', 'alex', 'compact', 'quality', 'premium',
-                'microsoft zira', 'microsoft jenny', 'microsoft aria', 'karen', 'moira'
-            ];
-            
-            return qualityKeywords.some(keyword => name.includes(keyword));
-        }
-
-        /**
-         * Determine if voice sounds natural based on name patterns
-         * @param {string} name - Voice name to analyze
-         * @returns {boolean} True if voice appears natural/expressive
-         */
-        function isNaturalVoice(name) {
-            const naturalKeywords = [
-                'neural', 'natural', 'expressive', 'conversational', 'storyteller',
-                'enhanced', 'premium', 'samantha', 'karen'
-            ];
-            
-            return naturalKeywords.some(keyword => name.includes(keyword));
-        }
-
-        /**
-         * Populate the voice selector dropdown with categorized voices
-         */
-        function populateVoiceSelector() {
-            const selector = document.getElementById('voiceSelector');
-            selector.innerHTML = '';
-            
-            // Add options for each category that has voices
-            Object.entries(voiceCategories).forEach(([category, voices]) => {
-                if (voices.length > 0) {
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    selector.appendChild(option);
-                }
-            });
-            
-            // Fallback: if no categorized voices, add all English voices
-            if (selector.children.length === 0) {
-                const englishVoices = availableVoices.filter(voice => 
-                    voice.lang.toLowerCase().includes('en')
-                );
-                
-                if (englishVoices.length > 0) {
-                    englishVoices.forEach(voice => {
-                        const option = document.createElement('option');
-                        option.value = voice.name;
-                        option.textContent = voice.name.length > 20 ? 
-                            voice.name.substring(0, 20) + '...' : voice.name;
-                        selector.appendChild(option);
-                    });
-                } else {
-                    selector.innerHTML = '<option value="">Default Voice</option>';
-                }
-            }
-        }
-
-        /**
-         * Change the selected voice
-         * @param {string} categoryOrName - Voice category or specific voice name
-         */
-        function changeVoice(categoryOrName) {
-            console.log('Changing voice to:', categoryOrName);
-            
-            if (voiceCategories[categoryOrName] && voiceCategories[categoryOrName].length > 0) {
-                // Category selection
-                preferredVoiceCategory = categoryOrName;
-                selectedVoice = voiceCategories[categoryOrName][0];
-            } else {
-                // Direct voice name selection (fallback)
-                selectedVoice = availableVoices.find(voice => voice.name === categoryOrName);
-            }
-            
-            // Save preference to localStorage
-            if (selectedVoice) {
-                localStorage.setItem('littleLoresVoiceCategory', preferredVoiceCategory);
-                console.log('Voice changed to:', selectedVoice.name);
-            }
-        }
-
-        /**
-         * Preview the currently selected voice
-         */
-        function previewVoice() {
-            if (!selectedVoice) return;
-            
-            // Stop current audio
-            if (isReading) stopAudio();
-            
-            // Create preview utterance
-            const previewText = "Hello! This is how I sound when reading your stories.";
-            const utterance = new SpeechSynthesisUtterance(previewText);
-            utterance.voice = selectedVoice;
-            utterance.rate = speechRate;
-            utterance.pitch = speechPitch;
-            
-            // Visual feedback
-            const previewBtn = document.querySelector('.voice-preview-btn');
-            previewBtn.textContent = '🔊';
-            
-            utterance.onend = () => previewBtn.textContent = '▶️';
-            utterance.onerror = () => {
-                previewBtn.textContent = '▶️';
-                console.error('Voice preview error');
-            };
-            
-            speechSynthesis.speak(utterance);
-        }
-
-        /**
-         * Load saved voice preferences from localStorage
-         */
-        function loadVoicePreferences() {
-            const savedCategory = localStorage.getItem('littleLoresVoiceCategory');
-            const savedPitch = localStorage.getItem('littleLoresVoicePitch');
-            
-            if (savedCategory && voiceCategories[savedCategory]?.length > 0) {
-                preferredVoiceCategory = savedCategory;
-                selectedVoice = voiceCategories[savedCategory][0];
-                document.getElementById('voiceSelector').value = savedCategory;
-            }
-            
-            if (savedPitch) {
-                speechPitch = parseFloat(savedPitch);
-                document.getElementById('pitchSlider').value = speechPitch;
-                updatePitchDisplay(speechPitch);
-            }
-        }
-
-        /**
-         * Enhance text for more natural storytelling speech
-         * Adds strategic pauses and adjusts for better flow
-         * @param {string} text - Original story text
-         * @returns {string} Enhanced text with natural pauses
-         */
-        function enhanceTextForStorytelling(text) {
-            let enhanced = text;
-            
-            // Add breathing pauses at sentence endings (like a real reader)
-            enhanced = enhanced.replace(/\.\s+/g, '. ... ');
-            enhanced = enhanced.replace(/!\s+/g, '! ... ');
-            enhanced = enhanced.replace(/\?\s+/g, '? ... ');
-            
-            // Add slight pauses at commas (natural breathing)
-            enhanced = enhanced.replace(/,\s+/g, ', . ');
-            
-            // Add pauses at colons (building anticipation)
-            enhanced = enhanced.replace(/:\s+/g, ': .. ');
-            
-            // Add pauses at semicolons
-            enhanced = enhanced.replace(/;\s+/g, '; .. ');
-            
-            // Add pause before opening quotes (preparing for dialogue)
-            enhanced = enhanced.replace(/\s+"/g, ' .. "');
-            
-            // Add pause after closing quotes (finishing dialogue)
-            enhanced = enhanced.replace(/"\s+/g, '" .. ');
-            
-            // Add pauses at em-dashes (dramatic pause)
-            enhanced = enhanced.replace(/--/g, ' ... ');
-            enhanced = enhanced.replace(/—/g, ' ... ');
-            
-            // Add slight pause at paragraph breaks (if any)
-            enhanced = enhanced.replace(/\n\n/g, '\n ... \n');
-            
-            // Add emphasis pauses before exclamations
-            enhanced = enhanced.replace(/([A-Z][a-z]+)!/g, '$1 !');
-            
-            return enhanced;
-        }
-        
-        /**
-         * Detect story mood/emotion to adjust voice settings
-         * @param {string} text - Story text to analyze
-         * @returns {string} Mood type: calm, exciting, mysterious, sad, happy
-         */
-        function detectStoryMood(text) {
-            const lowerText = text.toLowerCase();
-            
-            // Exciting/Action words
-            const excitingWords = ['suddenly', 'amazing', 'wonderful', 'ran', 'jumped', 'hurried', 'quickly', 'adventure', 'discovered', 'exciting'];
-            const excitingCount = excitingWords.filter(word => lowerText.includes(word)).length;
-            
-            // Calm/Peaceful words
-            const calmWords = ['peaceful', 'quiet', 'gentle', 'slowly', 'softly', 'calm', 'rest', 'sleep', 'dream'];
-            const calmCount = calmWords.filter(word => lowerText.includes(word)).length;
-            
-            // Mysterious words
-            const mysteriousWords = ['mysterious', 'strange', 'curious', 'wondered', 'secret', 'hidden', 'whispered'];
-            const mysteriousCount = mysteriousWords.filter(word => lowerText.includes(word)).length;
-            
-            // Sad words
-            const sadWords = ['sad', 'cried', 'tears', 'lonely', 'missed', 'lost', 'goodbye'];
-            const sadCount = sadWords.filter(word => lowerText.includes(word)).length;
-            
-            // Happy words
-            const happyWords = ['happy', 'joy', 'smiled', 'laughed', 'celebration', 'wonderful', 'delighted', 'cheerful'];
-            const happyCount = happyWords.filter(word => lowerText.includes(word)).length;
-            
-            // Determine dominant mood
-            const moods = {
-                exciting: excitingCount,
-                calm: calmCount,
-                mysterious: mysteriousCount,
-                sad: sadCount,
-                happy: happyCount
-            };
-            
-            const dominantMood = Object.keys(moods).reduce((a, b) => 
-                moods[a] > moods[b] ? a : b
-            );
-            
-            // Return calm as default if no strong signals
-            return moods[dominantMood] > 1 ? dominantMood : 'calm';
-        }
-        
-        /**
-         * Get voice settings optimized for story mood
-         * @param {string} mood - Story mood type
-         * @returns {Object} Voice settings {rate, pitch, volume}
-         */
-        function getStorytellingVoiceSettings(mood) {
-            const settings = {
-                calm: { 
-                    rate: 0.75,   // Slow, soothing
-                    pitch: 1.0,   // Natural pitch
-                    volume: 0.85  // Softer
-                },
-                exciting: { 
-                    rate: 0.88,   // A bit faster
-                    pitch: 1.2,   // Higher pitch for energy
-                    volume: 0.95  // Slightly louder
-                },
-                mysterious: { 
-                    rate: 0.70,   // Very slow for suspense
-                    pitch: 0.95,  // Slightly lower
-                    volume: 0.80  // Quieter
-                },
-                sad: { 
-                    rate: 0.68,   // Very slow
-                    pitch: 0.90,  // Lower pitch
-                    volume: 0.80  // Softer
-                },
-                happy: { 
-                    rate: 0.85,   // Moderately fast
-                    pitch: 1.15,  // Brighter
-                    volume: 0.90  // Pleasant volume
-                }
-            };
-            
-            return settings[mood] || settings.calm;
-        }
-
-        // ============================================================
-        // SLIDER CONTROL FUNCTIONS
-        // ============================================================
-
-        /**
-         * Update all slider displays with current values
-         */
-        function updateSliderDisplays() {
-            document.getElementById('speedSlider').value = speechRate;
-            updateSpeedDisplay(speechRate);
-            
-            document.getElementById('fontSlider').value = textSizeLevel;
-            updateFontDisplay(textSizeLevel);
-            
-            document.getElementById('pitchSlider').value = speechPitch;
-            updatePitchDisplay(speechPitch);
-        }
-
-        /**
-         * Update speed display text based on rate value
-         * @param {number} rate - Speech rate value
-         */
-        function updateSpeedDisplay(rate) {
-            const speedNames = {
-                0.5: 'Very Slow', 0.6: 'Slow', 0.7: 'Gentle', 0.8: 'Calm', 0.9: 'Steady',
-                1.0: 'Normal', 1.1: 'Brisk', 1.2: 'Quick', 1.3: 'Fast', 1.4: 'Fast',
-                1.5: 'Faster', 1.6: 'Very Fast', 1.7: 'Very Fast', 1.8: 'Very Fast',
-                1.9: 'Very Fast', 2.0: 'Very Fast'
-            };
-            
-            const closestRate = Object.keys(speedNames).reduce((prev, curr) => 
-                Math.abs(curr - rate) < Math.abs(prev - rate) ? curr : prev
-            );
-            
-            document.getElementById('speedValue').textContent = speedNames[closestRate];
-        }
-
-        /**
-         * Update font size display text
-         * @param {number} level - Font size level (1-4)
-         */
-        function updateFontDisplay(level) {
-            const fontNames = { 1: 'Small', 2: 'Medium', 3: 'Large', 4: 'Extra Large' };
-            document.getElementById('fontValue').textContent = fontNames[level];
-        }
-
-        /**
-         * Update pitch display text based on pitch value
-         * @param {number} pitch - Speech pitch value
-         */
-        function updatePitchDisplay(pitch) {
-            const pitchNames = {
-                0.7: 'Deep', 0.8: 'Low', 0.9: 'Natural', 1.0: 'Clear', 1.1: 'Warm',
-                1.2: 'Bright', 1.3: 'High', 1.4: 'Sweet', 1.5: 'Very High'
-            };
-            
-            const closestPitch = Object.keys(pitchNames).reduce((prev, curr) => 
-                Math.abs(curr - pitch) < Math.abs(prev - pitch) ? curr : prev
-            );
-            
-            document.getElementById('pitchValue').textContent = pitchNames[closestPitch];
-        }
-
-        /**
-         * Adjust speech speed from slider
-         * @param {string} value - New speed value from slider
-         */
-        function adjustSpeedSlider(value) {
-            speechRate = parseFloat(value);
-            updateSpeedDisplay(speechRate);
-            
-            // Restart audio with new speed if currently reading
-            if (isReading && !isPaused) {
+            if (isPlaying) {
                 stopAudio();
-                setTimeout(startAudio, 100);
+            } else {
+                playAudio();
             }
         }
 
-        /**
-         * Adjust font size from slider
-         * @param {string} value - New font size level from slider
-         */
+        function playAudio() {
+            if (!currentStory.audio_url) return;
+            
+            currentAudio = new Audio(currentStory.audio_url);
+            
+            currentAudio.onplay = () => {
+                isPlaying = true;
+                document.getElementById('audioBtn').innerHTML = '⏸️ Pause Audio';
+            };
+            
+            currentAudio.onpause = () => {
+                isPlaying = false;
+                document.getElementById('audioBtn').innerHTML = '🔊 Play Audio';
+            };
+            
+            currentAudio.onended = () => {
+                isPlaying = false;
+                document.getElementById('audioBtn').innerHTML = '🔊 Play Audio';
+            };
+            
+            currentAudio.onerror = () => {
+                isPlaying = false;
+                document.getElementById('audioBtn').innerHTML = '🔊 Play Audio';
+                alert('Error loading audio. Please try again.');
+            };
+            
+            currentAudio.play();
+        }
+
+        function stopAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+            isPlaying = false;
+            document.getElementById('audioBtn').innerHTML = '🔊 Play Audio';
+        }
+
+        // ============================================================
+        // TEXT SIZE CONTROL
+        // ============================================================
+
         function adjustFontSlider(value) {
             textSizeLevel = parseInt(value);
             updateFontDisplay(textSizeLevel);
             applyCurrentFontSize();
         }
 
-        /**
-         * Adjust speech pitch from slider
-         * @param {string} value - New pitch value from slider
-         */
-        function adjustPitchSlider(value) {
-            speechPitch = parseFloat(value);
-            updatePitchDisplay(speechPitch);
-            
-            // Save preference
-            localStorage.setItem('littleLoresVoicePitch', speechPitch);
-            
-            // Restart audio with new pitch if currently reading
-            if (isReading && !isPaused) {
-                stopAudio();
-                setTimeout(startAudio, 100);
-            }
+        function updateFontDisplay(level) {
+            const fontNames = { 1: 'Small', 2: 'Medium', 3: 'Large', 4: 'Extra Large' };
+            document.getElementById('fontValue').textContent = fontNames[level];
         }
 
-        /**
-         * Apply current font size to story text
-         */
         function applyCurrentFontSize() {
             const sizes = { 1: '1.0rem', 2: '1.2rem', 3: '1.5rem', 4: '1.8rem' };
             document.getElementById('currentStoryText').style.fontSize = sizes[textSizeLevel];
         }
 
         // ============================================================
-        // WORD HIGHLIGHTING & HELP SYSTEM
+        // WORD HELPER SYSTEM
         // ============================================================
 
-        /**
-         * Add word helpers to text for difficult words
-         * @param {string} text - Story text to process
-         * @returns {string} HTML with word helpers added
-         */
         function addWordHelpers(text) {
             if (!userGrade) return text;
             
-            // Define word length thresholds by grade
             const lengthThresholds = { 'K-1': 5, '2-3': 7, '4-5': 8, '6-8': 10 };
             const threshold = lengthThresholds[userGrade] || 8;
             const words = text.split(/(\s+)/);
             
-            // Process each word
             const processedWords = words.map(word => {
                 const cleanWord = word.replace(/[^\w]/g, '');
                 
@@ -2143,108 +1514,11 @@
             return processedWords.join('');
         }
 
-        /**
-         * Toggle reading assistance tips
-         */
         function toggleReadingAssist() {
             document.getElementById('readingAssist').classList.toggle('hidden');
         }
 
-        // ============================================================
-        // AUDIO CONTROL FUNCTIONS
-        // ============================================================
-
-        /**
-         * Toggle audio playback (play/pause)
-         */
-        function toggleAudio() {
-            if (!('speechSynthesis' in window)) {
-                alert('🔊 Audio feature is not supported in your browser.');
-                return;
-            }
-
-            if (isReading) {
-                if (isPaused) {
-                    speechSynthesis.resume();
-                    isPaused = false;
-                    document.getElementById('audioBtn').innerHTML = '⏸️ Pause';
-                } else {
-                    speechSynthesis.pause();
-                    isPaused = true;
-                    document.getElementById('audioBtn').innerHTML = '▶️ Resume';
-                }
-            } else {
-                startAudio();
-            }
-        }
-
-        /**
-         * Start audio playback of current story with enhanced natural voice
-         */
-        function startAudio() {
-            const text = document.getElementById('currentStoryText').textContent;
-            
-            // Detect story mood and get optimal settings
-            const storyMood = detectStoryMood(text);
-            const voiceSettings = getStorytellingVoiceSettings(storyMood);
-            
-            console.log('Story mood detected:', storyMood, 'Settings:', voiceSettings);
-            
-            // Enhance text with natural pauses
-            const enhancedText = enhanceTextForStorytelling(text);
-            
-            currentUtterance = new SpeechSynthesisUtterance(enhancedText);
-            
-            // Apply storytelling-optimized voice settings
-            if (selectedVoice) currentUtterance.voice = selectedVoice;
-            
-            // Use mood-based settings, but allow user overrides
-            currentUtterance.rate = speechRate || voiceSettings.rate;
-            currentUtterance.pitch = speechPitch || voiceSettings.pitch;
-            currentUtterance.volume = voiceSettings.volume;
-            
-            // Set up event handlers
-            currentUtterance.onstart = () => {
-                isReading = true;
-                isPaused = false;
-                document.getElementById('audioBtn').innerHTML = '⏸️ Pause';
-                document.getElementById('stopBtn').style.display = 'inline-block';
-            };
-            
-            currentUtterance.onend = resetAudioControls;
-            currentUtterance.onerror = () => {
-                resetAudioControls();
-                alert('Error with text-to-speech. Please try again.');
-            };
-            
-            speechSynthesis.speak(currentUtterance);
-        }
-
-        /**
-         * Stop audio playback
-         */
-        function stopAudio() {
-            speechSynthesis.cancel();
-            resetAudioControls();
-        }
-
-        /**
-         * Reset audio control buttons to default state
-         */
-        function resetAudioControls() {
-            isReading = false;
-            isPaused = false;
-            currentUtterance = null;
-            document.getElementById('audioBtn').innerHTML = '🔊 Read Aloud';
-            document.getElementById('stopBtn').style.display = 'none';
-        }
-
-        /**
-         * Show help popup for difficult words
-         * @param {string} word - Word to show definition for
-         */
         function showWordHelp(word) {
-            // Basic word definitions for common difficult words
             const definitions = {
                 'magnificent': 'very beautiful and impressive',
                 'cunning': 'clever in a sneaky way',
@@ -2281,9 +1555,6 @@
         // STORY COMPLETION FUNCTIONS
         // ============================================================
 
-        /**
-         * Mark current story as completed
-         */
         async function completeStory() {
             if (!currentStory) return;
             
@@ -2298,13 +1569,11 @@
                     last_read: new Date().toISOString()
                 };
                 
-                // Try to insert new progress record
                 const { data, error } = await supabase
                     .from('user_progress')
                     .insert(progressData);
                 
                 if (error) {
-                    // If insert fails, try update
                     console.log('Insert failed, trying update...');
                     const { data: updateData, error: updateError } = await supabase
                         .from('user_progress')
@@ -2319,7 +1588,6 @@
                     if (updateError) throw updateError;
                 }
                 
-                // Add to local completed stories set
                 completedStories.add(currentStory.story_id);
                 
                 alert(`🎉 Great job reading "${currentStory.title}"! You're becoming a wonderful reader!`);
@@ -2327,7 +1595,6 @@
                 
             } catch (error) {
                 console.error('Error completing story:', error);
-                // Still mark as completed locally
                 completedStories.add(currentStory.story_id);
                 alert('✅ Story completed! (Saving failed, but progress recorded locally)');
                 showHome();
@@ -2338,11 +1605,6 @@
         // UTILITY FUNCTIONS
         // ============================================================
 
-        /**
-         * Shuffle an array randomly
-         * @param {Array} array - Array to shuffle
-         * @returns {Array} Shuffled copy of array
-         */
         function shuffleArray(array) {
             const shuffled = [...array];
             for (let i = shuffled.length - 1; i > 0; i--) {
@@ -2352,9 +1614,6 @@
             return shuffled;
         }
 
-        /**
-         * Update progress bar on stories screen
-         */
         function updateProgress() {
             const totalAvailable = allStories.length;
             const completed = completedStories.size;
@@ -2364,9 +1623,6 @@
             document.getElementById('completedCount').textContent = completed;
         }
 
-        /**
-         * Update progress bar on stories read screen
-         */
         function updateProgressOnReadScreen() {
             const totalAvailable = allStories.length;
             const completed = completedStories.size;
@@ -2380,16 +1636,12 @@
         // APP INITIALIZATION
         // ============================================================
 
-        /**
-         * Initialize the application when DOM is ready
-         */
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log('Little Lores app initializing with enhanced voice...');
+            console.log('Little Lores app initializing...');
             
             showLoading();
             
             try {
-                // Check for existing authentication session
                 const { data: { session }, error } = await supabase.auth.getSession();
                 console.log('Initial session check:', session?.user?.email, error);
                 
@@ -2403,7 +1655,6 @@
                     console.log('User is already logged in, setting up...');
                     currentUser = session.user;
                     
-                    // Show user interface
                     document.getElementById('navMenu').classList.remove('hidden');
                     document.getElementById('userHeader').classList.remove('hidden');
                     document.getElementById('userNameHeader').textContent = 
@@ -2412,7 +1663,6 @@
                         currentUser.user_metadata.avatar_url || 
                         'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
                     
-                    // Load user data
                     await loadUserProfile();
                     await loadUserProgress();
                     
@@ -2420,7 +1670,6 @@
                         userGrade = userProfile.grade;
                         userRegion = userProfile.preferred_nation;
                         
-                        // Update UI elements with user data
                         if (userGrade) {
                             document.getElementById('userName').textContent = 
                                 currentUser.user_metadata.full_name || currentUser.email;
