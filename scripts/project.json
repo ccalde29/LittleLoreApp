@@ -1,0 +1,52 @@
+{
+  "projectName": "LittleLoreApp",
+  "description": "Audio generation scripts for K-5 grade stories",
+  "version": "1.0.0",
+  "scripts": {
+    "setup": "pip install -r requirements.txt",
+    "analyze": "python analyze_stories.py",
+    "clean": "python clean_stories.py",
+    "clean:apply": "python clean_stories.py --apply",
+    "audio:test": "python generate_audio.py --limit 5",
+    "audio:test:apply": "python generate_audio.py --limit 5 --apply",
+    "audio:all": "python generate_audio.py --all --apply"
+  },
+  "googleCloud": {
+    "api": "Cloud Text-to-Speech API",
+    "voices": {
+      "recommended": "en-US-Journey-F (Chirp female)",
+      "alternatives": [
+        "en-US-Journey-D (Chirp male)",
+        "en-US-Journey-O (Chirp female 2)"
+      ]
+    },
+    "pricing": {
+      "chirp": "$16 per 1M characters",
+      "estimatedCost": "$80-$112 for all K-5 stories"
+    }
+  },
+  "database": {
+    "tables": {
+      "stories_raw": "Main stories table with audio_url field",
+      "user_profiles": "User preferences and progress",
+      "user_progress": "Reading progress tracking"
+    },
+    "storage": {
+      "bucket": "audio",
+      "path": "story-audio/{story_id}.mp3"
+    }
+  },
+  "workflow": [
+    "1. Run analyze_stories.py to check for issues",
+    "2. Run clean_stories.py to fix text problems",
+    "3. Test with small batch (5 stories)",
+    "4. Generate audio for all K-5 stories"
+  ],
+  "notes": [
+    "Focus on K-5 grades only (K-1, 2-3, 4-5)",
+    "Use Chirp/Journey voices (NOT Neural2)",
+    "Stories are cleaned before audio generation",
+    "Audio files are ~1-2MB each",
+    "Rate limited to 1 story/second"
+  ]
+}

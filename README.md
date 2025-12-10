@@ -49,6 +49,7 @@ Visit the live application: [Little Lores App](https://ccalde29.github.io/Little
 ### Prerequisites
 - Modern web browser with JavaScript enabled
 - Internet connection for authentication and story loading
+- Python 3.8+ (for audio generation scripts)
 
 ### Local Development
 
@@ -58,20 +59,34 @@ Visit the live application: [Little Lores App](https://ccalde29.github.io/Little
    cd LittleLoreApp
    ```
 
-2. **Set up Supabase**
-   - Create a [Supabase](https://supabase.com) project
-   - Configure the database schema (see Database Schema section)
-   - Update the Supabase configuration in `index.html`:
-     ```javascript
-     const SUPABASE_URL = 'your-supabase-url';
-     const SUPABASE_ANON_KEY = 'your-supabase-anon-key';
-     ```
+2. **Set up Supabase Locally**
+   ```bash
+   # Install Supabase CLI
+   npm install -g supabase
+   
+   # Start local Supabase
+   supabase start
+   
+   # Database will be available at http://127.0.0.1:54321
+   # Studio UI at http://127.0.0.1:54323
+   ```
 
 3. **Configure Google OAuth**
    - Set up Google OAuth in your Supabase project
    - Add your domain to allowed redirect URLs
 
-4. **Serve the application**
+4. **Generate Story Audio (Optional but Recommended)**
+   ```bash
+   cd scripts
+   # See AUDIO_GENERATION_GUIDE.md for detailed instructions
+   python analyze_stories.py  # Analyze K-5 stories
+   python clean_stories.py --apply  # Clean story text
+   python generate_audio.py --all --apply  # Generate audio
+   ```
+   
+   📘 **Read-Aloud Feature**: Uses Google Cloud Text-to-Speech with natural Chirp voices optimized for children. See [`AUDIO_GENERATION_GUIDE.md`](AUDIO_GENERATION_GUIDE.md) for complete setup.
+
+5. **Serve the application**
    ```bash
    # Using Python
    python -m http.server 8000
@@ -83,7 +98,7 @@ Visit the live application: [Little Lores App](https://ccalde29.github.io/Little
    php -S localhost:8000
    ```
 
-5. **Access the app**
+6. **Access the app**
    Open your browser and navigate to `http://localhost:8000`
 
 ## 🗄️ Database Schema

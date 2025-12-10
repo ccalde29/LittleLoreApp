@@ -1,0 +1,145 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║           Little Lores - Audio Generation Quick Reference            ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+📍 CURRENT STATUS:
+  ✓ Supabase running locally (http://127.0.0.1:54321)
+  ✓ Database schema ready with audio support
+  ✓ Storage bucket configured for audio files
+  ✓ Scripts created for audio generation
+
+🎯 YOUR GOAL:
+  Generate natural, kid-friendly audio for K-5 grade stories using
+  Google Cloud Text-to-Speech (Chirp/Journey voices)
+
+💰 BUDGET: $300 Google Cloud credits
+   Estimated cost for K-5 stories: ~$88 (plenty of buffer!)
+
+══════════════════════════════════════════════════════════════════════
+
+🚀 QUICK START (5 COMMANDS):
+
+1. Setup environment:
+   cd scripts
+   pip install -r requirements.txt
+
+2. Get Google Cloud credentials:
+   - Visit: https://console.cloud.google.com/
+   - Enable: Cloud Text-to-Speech API
+   - Create service account key (JSON)
+   - Set: $env:GOOGLE_APPLICATION_CREDENTIALS="path\to\key.json"
+
+3. Analyze your stories:
+   python analyze_stories.py
+
+4. Clean story text:
+   python clean_stories.py --apply
+
+5. Generate audio (test with 5 first!):
+   python generate_audio.py --limit 5 --apply
+
+══════════════════════════════════════════════════════════════════════
+
+🎙️ RECOMMENDED VOICES:
+
+✓ en-US-Journey-F    - Warm female (BEST for kids)
+✓ en-US-Journey-D    - Clear male
+✓ en-US-Journey-O    - Expressive female
+
+✗ DON'T USE Neural2 voices - they're robotic!
+
+══════════════════════════════════════════════════════════════════════
+
+📋 COMMON COMMANDS:
+
+Analysis & Cleanup:
+  python analyze_stories.py           # Check stories for issues
+  python clean_stories.py             # Preview fixes
+  python clean_stories.py --apply     # Apply fixes
+
+Audio Generation:
+  python generate_audio.py --limit 5                    # Dry run (5 stories)
+  python generate_audio.py --limit 5 --apply            # Generate 5
+  python generate_audio.py --all --apply                # Generate all K-5
+  python generate_audio.py --limit 10 --apply --voice chirp_male_1
+
+══════════════════════════════════════════════════════════════════════
+
+🗂️ FILES CREATED:
+
+scripts/
+  ├─ analyze_stories.py    - Story analysis & cost estimates
+  ├─ clean_stories.py      - Text cleanup & validation
+  ├─ generate_audio.py     - Google TTS audio generation
+  ├─ requirements.txt      - Python dependencies
+  ├─ README.md            - Detailed documentation
+  └─ setup.ps1            - Environment check script
+
+Root/
+  ├─ AUDIO_GENERATION_GUIDE.md  - Complete walkthrough
+  └─ README.md (updated)         - Project overview
+
+══════════════════════════════════════════════════════════════════════
+
+📊 MONITORING:
+
+Check Supabase Studio: http://127.0.0.1:54323
+  Storage > audio bucket        (view uploaded files)
+  Table Editor > stories_raw    (check audio_url column)
+
+SQL query for progress:
+  SELECT grade_level, 
+         COUNT(*) as total,
+         COUNT(audio_url) as completed
+  FROM stories_raw 
+  WHERE grade_level IN ('K-1', '2-3', '4-5')
+  GROUP BY grade_level;
+
+══════════════════════════════════════════════════════════════════════
+
+⚠️ IMPORTANT TIPS:
+
+1. TEST FIRST! Always run with --limit 5 before processing all
+2. Listen to samples before committing to full generation
+3. The script is resumable - stops gracefully on Ctrl+C
+4. Only processes stories without audio (can rerun safely)
+5. Files are ~1-2MB each, budget storage accordingly
+
+══════════════════════════════════════════════════════════════════════
+
+🆘 TROUBLESHOOTING:
+
+"Credentials not set"
+  → Set $env:GOOGLE_APPLICATION_CREDENTIALS="path\to\key.json"
+  → Restart PowerShell
+
+"Supabase not running"
+  → Run: supabase start
+
+"Permission denied"
+  → Check service account has Text-to-Speech Client role
+
+"Voice sounds robotic"
+  → Make sure using Journey voices (NOT Neural2)
+  → Try different Chirp voices
+
+══════════════════════════════════════════════════════════════════════
+
+📖 DETAILED DOCS:
+
+For complete setup instructions:
+  → Read: AUDIO_GENERATION_GUIDE.md
+  → Read: scripts/README.md
+
+══════════════════════════════════════════════════════════════════════
+
+✨ WHAT'S NEXT:
+
+After audio generation:
+  1. Test audio playback in your app
+  2. Add play/pause/speed controls
+  3. Implement read-along highlighting
+  4. Consider multiple voice options per story
+  5. Get feedback from kids!
+
+══════════════════════════════════════════════════════════════════════
