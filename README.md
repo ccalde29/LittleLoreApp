@@ -84,7 +84,7 @@ Visit the live application: [Little Lores App](https://ccalde29.github.io/Little
    python generate_audio.py --all --apply  # Generate audio
    ```
    
-   📘 **Read-Aloud Feature**: Uses Google Cloud Text-to-Speech with natural Chirp voices optimized for children. See [`AUDIO_GENERATION_GUIDE.md`](AUDIO_GENERATION_GUIDE.md) for complete setup.
+   📘 **Read-Aloud Feature**: Uses Google Cloud Text-to-Speech with natural Chirp voices optimized for children. Audio files stored in Google Cloud Storage (`little-lore-audio` bucket). See [`AUDIO_GENERATION_GUIDE.md`](AUDIO_GENERATION_GUIDE.md) for complete setup.
 
 5. **Serve the application**
    ```bash

@@ -46,17 +46,16 @@ $env:GOOGLE_APPLICATION_CREDENTIALS="C:\path\to\your\service-account-key.json"
 [System.Environment]::SetEnvironmentVariable('GOOGLE_APPLICATION_CREDENTIALS', 'C:\path\to\your\key.json', 'User')
 ```
 
-### 4. Create Supabase Storage Bucket
+### 4. Verify Google Cloud Storage Bucket
 
-The scripts expect a storage bucket named `audio`. Create it:
+The scripts use your existing GCS bucket `little-lore-audio`:
 
-1. Open Supabase Studio: http://127.0.0.1:54323
-2. Go to Storage
-3. Create new bucket:
-   - Name: `audio`
-   - Public: Yes (so stories can be played)
-   - File size limit: 50MB
-   - Allowed MIME types: `audio/mpeg, audio/mp3`
+1. Verify bucket exists in [Google Cloud Console](https://console.cloud.google.com/storage)
+2. Make sure your service account has permissions:
+   - Storage Object Admin (to upload files)
+   - Storage Object Viewer (to read files)
+3. Bucket should be publicly accessible for audio playback
+4. Location: Choose closest to your users (e.g., us-central1)
 
 ## 📊 Step-by-Step Workflow
 
@@ -147,8 +146,9 @@ Based on your database:
 - Verify the JSON key file is readable
 
 ### "Bucket not found" errors
-- Create the `audio` bucket in Supabase Storage
-- Make sure it's set to public
+- Verify `little-lore-audio` bucket exists in Google Cloud Storage
+- Check service account has Storage Object Admin permissions
+- Make sure bucket is publicly accessible
 
 ### Audio quality issues
 - Try different voices (chirp_female_1, chirp_male_1)
@@ -159,7 +159,8 @@ Based on your database:
 
 - `audio_files/` - Local MP3 files (before upload)
 - `story_analysis_results.txt` - Story analysis report
-- Audio files uploaded to: `supabase/storage/audio/story-audio/{story_id}.mp3`
+- Audio files uploaded to: `gs://little-lore-audio/story-audio/{story_id}.mp3`
+- Public URLs stored in database: `stories_raw.audio_url`
 
 ## 🎯 Next Steps
 

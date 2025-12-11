@@ -1,20 +1,24 @@
 """
 Google Cloud Text-to-Speech Script
 Generates audio files for K-5 grade stories using Chirp voices
-Uploads to Supabase storage
+Uploads to Google Cloud Storage
 """
 
 import os
 from google.cloud import texttospeech
+from google.cloud import storage
 from supabase import create_client, Client
 import time
 from pathlib import Path
 
-# Supabase connection
+# Supabase connection (database only)
 SUPABASE_URL = "http://127.0.0.1:54321"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Google Cloud Storage configuration
+GCS_BUCKET_NAME = "little-lores-audio"
 
 # Google Cloud TTS Chirp Voices (newest generation)
 # These are the best voices for children's content - natural, expressive, and clear
@@ -149,25 +153,30 @@ def generate_audio(text, story_id, voice_config, output_dir='audio_files'):
         print(f"✗ Error generating audio: {e}")
         return None
 
-def upload_to_supabase_storage(filepath, story_id):
-    """Upload audio file to Supabase storage"""
+def upload_to_gcs(filepath, story_id):
+    """Upload audio file to Google Cloud Storage"""
     try:
-        with open(filepath, 'rb') as f:
-            file_data = f.read()
+        # Initialize GCS client
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(GCS_BUCKET_NAME)
         
-        # Upload to storage bucket
-        storage_path = f"story-audio/{story_id}.mp3"
+        # Create blob path
+        blob_name = f"story-audio/{story_id}.mp3"
+        blob = bucket.blob(blob_name)
         
-        supabase.storage.from_('audio').upload(
-            storage_path,
-            file_data,
-            file_options={"content-type": "audio/mpeg"}
+        # Upload file
+        blob.upload_from_filename(
+            filepath,
+            content_type='audio/mpeg'
         )
         
-        # Get public URL
-        public_url = supabase.storage.from_('audio').get_public_url(storage_path)
+        # Make the blob publicly accessible
+        blob.make_public()
         
-        # Update story record with audio URL
+        # Get public URL
+        public_url = blob.public_url
+        
+        # Update story record with audio URL in database
         supabase.table('stories_raw').update({
             'audio_url': public_url
         }).eq('story_id', story_id).execute()
@@ -175,7 +184,7 @@ def upload_to_supabase_storage(filepath, story_id):
         return public_url
     
     except Exception as e:
-        print(f"✗ Error uploading to Supabase: {e}")
+        print(f"✗ Error uploading to GCS: {e}")
         return None
 
 def process_k5_stories(voice_key='chirp_female_1', limit=None, dry_run=True):
@@ -241,12 +250,12 @@ def process_k5_stories(voice_key='chirp_female_1', limit=None, dry_run=True):
             file_size = os.path.getsize(filepath) / 1024 / 1024  # MB
             print(f"  ✓ Audio generated: {file_size:.2f} MB")
             
-            # Upload to Supabase
-            print(f"  Uploading to Supabase storage...")
-            url = upload_to_supabase_storage(filepath, story_id)
+            # Upload to Google Cloud Storage
+            print(f"  Uploading to Google Cloud Storage...")
+            url = upload_to_gcs(filepath, story_id)
             
             if url:
-                print(f"  ✓ Uploaded successfully")
+                print(f"  ✓ Uploaded to GCS: {url}")
             else:
                 print(f"  ✗ Upload failed")
         else:

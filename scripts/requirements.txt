@@ -1,5 +1,8 @@
-# Supabase Python SDK
+# Supabase Python SDK (for database only)
 supabase==2.3.0
 
 # Google Cloud Text-to-Speech
 google-cloud-texttospeech==2.16.0
+
+# Google Cloud Storage
+google-cloud-storage==2.14.0

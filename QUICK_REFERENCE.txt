@@ -3,9 +3,9 @@
 ╚══════════════════════════════════════════════════════════════════════╝
 
 📍 CURRENT STATUS:
-  ✓ Supabase running locally (http://127.0.0.1:54321)
+  ✓ Supabase running locally for database (http://127.0.0.1:54321)
   ✓ Database schema ready with audio support
-  ✓ Storage bucket configured for audio files
+  ✓ Google Cloud Storage bucket ready (little-lore-audio)
   ✓ Scripts created for audio generation
 
 🎯 YOUR GOAL:
@@ -83,9 +83,11 @@ Root/
 
 📊 MONITORING:
 
-Check Supabase Studio: http://127.0.0.1:54323
-  Storage > audio bucket        (view uploaded files)
-  Table Editor > stories_raw    (check audio_url column)
+Google Cloud Storage: https://console.cloud.google.com/storage/browser/little-lore-audio
+  View uploaded MP3 files
+
+Database (VS Code or any SQL client):
+  Check audio_url column in stories_raw table
 
 SQL query for progress:
   SELECT grade_level, 
@@ -116,8 +118,13 @@ SQL query for progress:
 "Supabase not running"
   → Run: supabase start
 
+"Bucket not found"
+  → Verify little-lore-audio bucket exists in GCS
+  → Check service account has Storage Object Admin permissions
+
 "Permission denied"
-  → Check service account has Text-to-Speech Client role
+  → Check service account has both Text-to-Speech Client 
+    AND Storage Object Admin roles
 
 "Voice sounds robotic"
   → Make sure using Journey voices (NOT Neural2)
