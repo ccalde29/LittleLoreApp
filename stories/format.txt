@@ -1,0 +1,89 @@
+| nation                | region   |
+| --------------------- | -------- |
+| russian               | Europe   |
+| icelandic             | Europe   |
+| jewish                | Europe   |
+| south_african         | Africa   |
+| irish                 | Europe   |
+| romanian              | Europe   |
+| japanese              | Asia     |
+| belgian               | Europe   |
+| portuguese            | Europe   |
+| zimbabwe              | Africa   |
+| finnish               | Europe   |
+| italian               | Europe   |
+| german                | Europe   |
+| indian                | Asia     |
+| nigerian              | Africa   |
+| korean                | Asia     |
+| slavic                | Europe   |
+| maori                 | Oceania  |
+| bulgarian             | Europe   |
+| norwegian             | Europe   |
+| croatian              | Europe   |
+| arabic                | Asia     |
+| scottish              | Europe   |
+| estonian              | Europe   |
+| dutch                 | Europe   |
+| ukrainian             | Europe   |
+| australian_ethnic     | Oceania  |
+| french                | Europe   |
+| north_american_native | Americas |
+| czechoslovak          | Europe   |
+| new_zealand_native    | Oceania  |
+| spanish               | Europe   |
+| pakistani             | Asia     |
+| tanzanian             | Africa   |
+| hungarian             | Europe   |
+| bukovinian            | Europe   |
+| welsh                 | Europe   |
+| philippine            | Asia     |
+| celtic                | Europe   |
+| lithuanian            | Europe   |
+| hawaiian              | Oceania  |
+| sami                  | Europe   |
+| english               | Europe   |
+| swedish               | Europe   |
+| canadian_native       | Americas |
+| nordic                | Europe   |
+| turkish               | Asia     |
+| scandinavian          | Europe   |
+| danish                | Europe   |
+| serbian               | Europe   |
+| armenian              | Asia     |
+| polish                | Europe   |
+| brazilian             | Americas |
+| greek                 | Europe   |
+| cataloanian           | Europe   |
+| null                  | Europe   |
+| chinese               | Asia     |
+| albanian              | Europe   |
+
+| grade_level |
+| ----------- |
+| 6-8         |
+| 4-5         |
+| 2-3         |
+| K-1         |
+
+| source                    |
+| ------------------------- |
+| Andersen fairy tales      |
+| Andrew Lang fairy tales   |
+| North American folktales  |
+| European folktales        |
+| Australian folktales      |
+| Arab folktales            |
+| African folktales         |
+| Indian  folktales         |
+| Filipino folktales        |
+| Indian folktales          |
+| Asian folktales           |
+| Native American folktales |
+| Grimm fairy tales         |
+| South American folktales  |
+
+| genre       |
+| ----------- |
+| Fairy tales |
+| Folktales   |

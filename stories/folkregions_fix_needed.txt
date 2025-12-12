@@ -1,0 +1,32 @@
+| region         |
+| -------------- |
+| Nigeria        |
+| Italy          |
+| Dutch          |
+| China          |
+| Russia         |
+| Norway         |
+| Sweden         |
+| USA            |
+| Celtic         |
+| Scotland       |
+| Native America |
+| Romania        |
+| Brazil         |
+| Australia      |
+| Ireland        |
+| Germany        |
+| Canada         |
+| Czech          |
+| Portugal       |
+| British isles  |
+| Wales          |
+| Ukraine        |
+| England        |
+| India          |
+| Arab           |
+| South Africa   |
+| Poland         |
+| Japan          |
+| Denmark        |
+| Philippines    |
