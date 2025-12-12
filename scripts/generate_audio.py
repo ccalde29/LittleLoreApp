@@ -11,9 +11,9 @@ from supabase import create_client, Client
 import time
 from pathlib import Path
 
-# Supabase connection (database only)
-SUPABASE_URL = "http://127.0.0.1:54321"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
+# Supabase connection (remote database)
+SUPABASE_URL = "https://mxjhvjwjgqmavmasfypa.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im14amh2andqZ3FtYXZtYXNmeXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3Njk5NjEsImV4cCI6MjA2MDM0NTk2MX0.LLk01H7ueKFPMFpZfNOv3zx8VsICu6Gh6msuSjBW2x0"
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -62,7 +62,8 @@ def setup_google_credentials():
         print("3. Enable Cloud Text-to-Speech API")
         print("4. Create a service account and download JSON key")
         print("5. Set environment variable:")
-        print('   $env:GOOGLE_APPLICATION_CREDENTIALS="path\\to\\your\\key.json"')
+        print('   export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/key.json"')
+        print('   (Add to ~/.zshrc to make permanent)')
         return False
     
     if not os.path.exists(creds_path):

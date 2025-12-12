@@ -20,7 +20,8 @@ def check_gcs_setup():
     creds_path = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
     if not creds_path:
         print("✗ GOOGLE_APPLICATION_CREDENTIALS not set!")
-        print("  Set with: $env:GOOGLE_APPLICATION_CREDENTIALS='path\\to\\key.json'")
+        print("  Set with: export GOOGLE_APPLICATION_CREDENTIALS='/path/to/key.json'")
+        print("  (Add to ~/.zshrc to make permanent)")
         return False
     
     if not os.path.exists(creds_path):
@@ -84,7 +85,7 @@ def check_gcs_setup():
         print("=" * 70)
         print()
         print("You're ready to generate audio files!")
-        print("Run: python generate_audio.py --limit 5 --apply")
+        print("Run: python3 generate_audio.py --limit 5 --apply")
         return True
         
     except Exception as e:
